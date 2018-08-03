@@ -1,0 +1,124 @@
+/*      Ricardo Nobre                                   *
+ *      Departamento de Engenharia Informática          *
+ *      FEUP, Porto, Portugal                           * 
+ *      ricardo.nobre@fe.up.pt                          */
+
+import DseRun;
+
+aspectdef DseAlgo
+
+        input
+                exploreParams = [], maxIterations, maxWidth, referenceConfigsFitness, sequences, nr;
+        end
+
+       	var MAX_ALREADY_TESTED  = 100;	// Limits the number of times previously generated sequences can be generated again before DSE termination
+
+	/* GLOBAL DSE EXPLORATION SETTINGS */
+        var startTempFactor = -1 / Math.log(0.5); 		// 50% chance of selecting a sequence that is 100% worse than currently selected sequence
+        var finalTempFactor = -0.00001 / Math.log(0.01);	// 1%  chance of selecting a sequence that is 0.001% worse than currently selected sequence
+
+	var currentSolution = {};
+	currentSolution.config = DseRun.getBestSolutionConfig().slice(0);
+	currentSolution.fitness = DseRun.getBestSolutionFitness();	
+
+	
+	var fitnessRef = referenceConfigsFitness[0];
+	var optimLevel = "";
+
+        if(fitnessRef == 0) {
+                for(var i=0; i<referenceConfigsFitness.length; i++) {
+                        if(referenceConfigsFitness[i] > 0) {
+                                fitnessRef = referenceConfigsFitness[i];
+                        }
+                }
+        }
+
+	println("\nSetting Simulated Annealing Paramenters...");
+	var temp = fitnessRef * startTempFactor;
+	var temp_min = fitnessRef * finalTempFactor;
+	var alpha = Math.pow(Math.exp(1), Math.log(temp_min/temp)/maxIterations); // Calculates alpha based on parameters
+
+	println("\n----------------------- SA PARAMETERS --------------------------");
+	println(" T_max : " + temp.toFixed(3) + ", T_min: " + temp_min.toFixed(3) + ", α: " + + alpha.toFixed(3));	
+	println("----------------------------------------------------------------\n");
+	
+	
+	
+	var num_steps = 1;	// Number of steps per temperature 
+	var k;
+
+
+	var n_times_already_tested = 0;
+			
+	for(; /* temp > temp_min */ DseRun.getStepCounter() < maxIterations; temp = temp * alpha) {
+
+        	for(k=0; (k<num_steps); k++) {
+
+			var newConfig = new Array();
+			newConfig = currentSolution.config.slice(0);
+
+			if(newConfig.length < maxWidth) {
+
+				var rand_posConfigList = Math.floor(Math.random()*(currentSolution.config.length + 1));    // Calculates index of random compiler pass in the candidate compiler sequence
+				// println(rand_posConfigList);
+				var newPass = exploreParams[Math.floor((Math.random() * exploreParams.length) + 0)];
+				newConfig = currentSolution.config.slice(0,rand_posConfigList);
+				newConfig.push(newPass);
+				newConfig = newConfig.concat(currentSolution.config.slice(rand_posConfigList)) ;
+			}
+			else {
+				var rand_posConfigList = Math.floor(Math.random()*currentSolution.config.length);
+				var newPass = exploreParams[Math.floor((Math.random() * exploreParams.length) + 0)];
+				newConfig[rand_posConfigList] = newPass;
+			}
+			
+			if (DseRun.getNumTimesSequenceWasGenerated(newConfig) > 0) {	// Terminates DSE if MAX_ALREADY_TESTED sequences are subsequently generated
+				n_times_already_tested++;
+				if(n_times_already_tested >= MAX_ALREADY_TESTED) {
+					return;
+				}
+			}
+			else {
+				n_times_already_tested = 0;
+			}
+
+			newLatency = DseRun.compile_execute_and_report(newConfig);
+
+			if(DseRun.isSolutionValid(newLatency) == false) {
+				DseRun.printIterationInfo(newConfig, newLatency, null);	// no message because the function will detect that the sequence is problematic and will print a predefined message (depending on the problem caused by the sequence)
+				continue;
+			}
+
+			if(DseRun.isLeftFitnessBetterOrEqualThanRightFitness(newLatency, currentSolution.fitness)) {	// better solution
+				currentSolution.fitness = newLatency;
+				currentSolution.config = newConfig;	
+				// println("BETTER SOLUTION ACCEPTED");
+				//println("\t" + DseRun.getStepCounter() + " (O)\t : " + currentSolution.fitness + "\t : " + currentSolution.config.join(" ") + "");
+
+				if(DseRun.isLeftFitnessBetterOrEqualThanRightFitness(newLatency, DseRun.getBestSolutionFitness())) {
+					DseRun.updateBestSolution(newConfig, newLatency);
+				}
+				DseRun.printIterationInfo(newConfig, newLatency, "O") ;
+			}
+			else {	// worse solution
+				var rand = Math.random();	// random number between 0 and 1 (TODO: attention if it is exclusive or inclusive with 1!)
+				var delta_lat = Math.abs(newLatency - currentSolution.fitness);	// it is important to perform the 'abs()' as if the objective of DSE is MAXIMIZATION of the finess value, then without the 'abs()' the result of the difference with be negative
+				var val = Math.pow(Math.exp(1), - (delta_lat / temp));
+				
+				if(val > rand) {	// worse solution accepted
+					currentSolution.fitness = newLatency;
+					currentSolution.config = newConfig;
+					
+					DseRun.printIterationInfo(newConfig, newLatency, "XO") ;
+
+				}
+				else {	// worse solution not accepted
+					DseRun.printIterationInfo(newConfig, newLatency, "X") ;
+
+				}
+			}
+
+		}
+	}
+
+end

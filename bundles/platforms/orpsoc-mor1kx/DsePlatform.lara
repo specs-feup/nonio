@@ -1,0 +1,106 @@
+import DsePlatformBase;
+import dse.metrics.PerformanceMetricOrpsoc;
+//import dse.metrics.SizeMetric;
+import lara.Io;
+import lara.System;
+
+DsePlatform._init = function() {
+	DsePlatform._addMetric("performance", new PerformanceMetricOrpsoc());
+	//DsePlatform._addMetric("size", new SizeMetric());
+}
+
+// Work-around, LARA currently does not support calling functions directly
+DsePlatform._temp = DsePlatform._init();
+
+
+DsePlatform.execute = function() {
+
+	var executionCommand = "fusesoc sim --sim=verilator --keep mor1kx-generic --elf-load ";	
+	var application = new ProcessExecutor();
+	application.setTimeout(LaradSetup.defaultTimelimit)
+		.setPrintToConsole(false);
+	
+	if(!Io.isFile(DseCompiler.getTestExecutable())) {
+		// 
+		debug("DsePlatform.execute: DseCompiler does not have a valid test executable ('" + DseCompiler.getTestExecutable() + "')");
+		return undefined;
+		/* TODO: trow exception because this functions in only supposed to be called if the executable exists */
+	}
+
+	application.execute(executionCommand + DseCompiler.getTestExecutable().getAbsolutePath());
+	System.execute("pkill -f Vorpsoc_top");
+	
+	var returnValue = DsePlatform._getReturnValue(application, executionCommand);
+/*
+	var returnValue;
+	if(LaradSetup.isVerificationSeparated === false) {
+		if(application.getConsoleOutput() !== undefined) {
+                	returnValue = Strings.extractValue("return: ", application.getConsoleOutput());
+                	// TODO: Do something in case returnValue is undefined? (e.g., set value to 1)
+
+		}
+	}	
+	else {
+		var verification = new ProcessExecutor();
+		verification.setTimeout(LaradSetup.defaultTimelimit)
+			.setPrintToConsole(false);
+
+		if(Io.isFile(DseCompiler.getVerificationExecutable()) == true) {
+	                // Execute verification in another ProcessExecutor
+			verification.execute(executionCommand + DseCompiler.getVerificationExecutable().getAbsolutePath());
+	                System.execute("pkill -f Vorpsoc_top");
+	        }
+		else { 
+		// TODO: trow exception because this functions in only supposed to be called if the executable exists (in case verification is separated)
+		}
+
+                if(verification.getConsoleOutput() !== undefined) {
+			// Save result of verification ProcessExecutor		
+			returnValue = Strings.extractValue("return: ", verification.getConsoleOutput());
+		}
+	}
+*/
+        application.setCustomReturnValue(returnValue);
+//	println("return_value: " + returnValue);
+	return application;
+}
+
+DsePlatform._getReturnValue = function(executedProcess, executionCommand) {
+
+	if(!LaradSetup.isVerificationSeparated) {
+		if(executedProcess.getConsoleOutput() === undefined) {
+			debug("DsePlatform._getReturnValue: executed application has undefined console output");	
+			return -1;
+		}
+	
+		var returnValue = Strings.extractValue("return: ", executedProcess.getConsoleOutput());
+		return returnValue;
+	}
+
+
+	// Separate verification
+	var verification = new ProcessExecutor();
+	verification.setTimeout(LaradSetup.defaultTimelimit).setPrintToConsole(false);
+
+	if(!Io.isFile(DseCompiler.getVerificationExecutable())) {
+		debug("DsePlatform._getReturnValue: DseCompiler does not have a valid verification executable ('" + DseCompiler.getVerificationExecutable() + "')");
+		return -1;
+	}
+	
+	// Execute verification in another ProcessExecutor
+	verification.execute(executionCommand + DseCompiler.getVerificationExecutable().getAbsolutePath());
+	System.execute("pkill -f Vorpsoc_top");
+	
+	if(verification.getConsoleOutput() === undefined) {
+		debug("DsePlatform._getReturnValue: executed verification application has undefined console output");	
+		return -1;
+     }
+	
+	
+	return Strings.extractValue("return: ", verification.getConsoleOutput());
+}
+
+
+DsePlatform.getCompilerConfig = function() {
+	return "openrisc";
+}

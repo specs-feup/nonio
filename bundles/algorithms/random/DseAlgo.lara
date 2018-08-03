@@ -1,0 +1,38 @@
+/*      Ricardo Nobre                                   *
+ *      Departamento de Engenharia Informática          *
+ *      FEUP, Porto, Portugal                           * 
+ *      ricardo.nobre@fe.up.pt                          */
+
+import DseRun;
+
+aspectdef DseAlgo
+
+        input
+                exploreParams = [], maxIterations, maxWidth, referenceConfigsFitness, sequences, nr;
+        end
+
+
+	for(var i=0; i<maxIterations; i++) {
+
+		var newConfig = [];
+		for(var j=0; j<maxWidth; j++) {
+			newConfig[j] = exploreParams[Math.floor(Math.random() * exploreParams.length)];
+		}
+
+		var newLatency = DseRun.compile_execute_and_report(newConfig);
+
+		if(DseRun.isSolutionValid(newLatency) == false) {
+			DseRun.printIterationInfo(newConfig, newLatency, null);	// no message because the function will detect that the sequence is problematic and will print a predefined message (depending on the problem caused by the sequence)
+			continue;
+		}
+		else if(DseRun.isLeftFitnessBetterOrEqualThanRightFitness(newLatency, DseRun.getBestSolutionFitness())) {	// better solution
+			DseRun.updateBestSolution(newConfig, newLatency);
+			DseRun.printIterationInfo(newConfig, newLatency, "O") ;
+		}
+		else {	// worse solution
+			DseRun.printIterationInfo(newConfig, newLatency, "X") ;
+		}
+
+	}
+
+end

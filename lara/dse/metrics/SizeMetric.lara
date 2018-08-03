@@ -1,0 +1,28 @@
+import lara.metrics.Metric;
+
+/**
+ * Measures code size of an application.
+ * @constructor
+ */
+function SizeMetric() {
+    // Parent constructor
+    Metric.call(this,"Code Size");
+}
+// Inheritance
+SizeMetric.prototype = Object.create(Metric.prototype);
+
+
+// Override
+SizeMetric.prototype.instrument = function($start, $end) {
+	// Does not need instrumentation
+}
+
+// Override
+SizeMetric.prototype.report = function(processExecutor) {
+	println("SizeMetric.report not implemented yet");
+}
+
+// Override
+SizeMetric.prototype.getImport = function() {
+		return "dse.metrics.SizeMetric";
+}

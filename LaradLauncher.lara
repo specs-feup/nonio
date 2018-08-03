@@ -1,0 +1,196 @@
+import clava.Clava;
+import lara.Io;
+import lara.Strings;
+import weaver.WeaverOptions;
+import LaradSetup;
+
+aspectdef LaradLauncher
+	input
+		laradFoldername,
+		sourceFile,
+		compiler = "gcc",
+		nsteps = 1000,
+		language = "c",
+		target = "host-intel",
+		algo = "sa",
+		metric = "performance",
+		compilerFolderName = undefined,
+		compilerPrefix = "",
+		specialLinker = undefined,	
+		seqlen = 32,
+		nexec = 1,
+		minimumExecForReporting = 30,	// used for the reference fitness and for the final reported value for the phase ordering
+		nr = -1,
+		clean = 1,
+		passes = "",
+		percent = 2,
+		append = "",
+		metrics = ["performance"],
+		alreadyInstrumented = false,
+		isVerificationSeparated = false,
+		log = undefined
+//		compilerFlags = undefined
+	end
+	
+	debug(true);
+
+	println("laradFoldername: " + laradFoldername);
+
+	checkDefined(laradFoldername, "laradFoldername", "LaradLauncher");
+	checkDefined(sourceFile, "sourceFile", "LaradLauncher");
+
+	if(!alreadyInstrumented) {
+		checkLanguage(language);
+	}
+	//checkLanguage(language);
+
+	
+	var laradFile = argPath(laradFoldername, "Larad.lara");
+	var laradFolder = argPath(laradFoldername);
+	var dseLaraFolder = argPath(laradFoldername, "lara");
+	var dseBundleFolder = argPath(laradFoldername, "bundles");
+	var pathSeparator = Io.getPathSeparator();
+	
+	// Example of command line that will be built (without the absolute paths):
+	// clava ../lara-dse/Larad.lara -av "('../lara-dse', 'gcc', 'C:/msys64/mingw64/bin', 'DSP_autocor_c/DSP_autocor_c.c', 10)" -bt compiler=gcc,algo=sa,language=c,target=host-intel -i "../lara-dse/compilers;../lara-dse/algorithms;../lara-dse/targets;../lara-dse;../lara-dse/includes/scripts;../lara-dse/includes/java" -t ../lara-dse/larai/resources/tools.xml -b 2  -nw
+	
+	var data = Clava.getData(); 
+	data.put("aspect", Io.getPath(laradFile));
+	
+	
+	//var clavaArgs = " -av \"{laradFoldername:'" + laradFolder + "', compiler:'" + compiler + "', compilerFolderName:";
+	var aspectArgs = "{laradFoldername:'" + laradFolder + "', compiler:'" + compiler + "', compilerFolderName:";
+	
+	if(compilerFolderName === undefined) {
+		aspectArgs += "undefined";
+	} else {
+		aspectArgs += "'" + argPath(compilerFolderName) + "'";
+	}
+
+	aspectArgs += ", compilerPrefix: '" + compilerPrefix + "'";
+	
+	aspectArgs += ", sourceFile:'" + argPath(sourceFile) + "'";
+	
+	aspectArgs += ", nsteps:" + nsteps;
+
+	aspectArgs += ", seqlen:" + seqlen;
+
+	aspectArgs += ", metrics: ['" + metrics.join("', '") + "']";
+	
+	aspectArgs += ", language: '" + language + "'";
+	
+	aspectArgs += ", alreadyInstrumented: " + alreadyInstrumented;
+	
+	aspectArgs += ", isVerificationSeparated: " + isVerificationSeparated;
+
+	aspectArgs += ", nexec: " + nexec;
+
+	aspectArgs += ", minimumExecForReporting: " + minimumExecForReporting;
+
+	aspectArgs += ", specialLinker: '" + specialLinker + "'";
+
+	aspectArgs += ", target: '" + target + "'";
+
+	aspectArgs += "}";
+
+	data.put("argv", aspectArgs);
+
+	// Includes
+	//clavaArgs += " -i \"" 
+	includes = argPath(laradFolder) + pathSeparator
+		+ argPath(dseLaraFolder) + pathSeparator
+	    + argPath(dseBundleFolder, "compilers") + pathSeparator
+		+ argPath(dseBundleFolder, "algorithms") + pathSeparator
+		//+ argPath(dseBundleFolder, "targets") + pathSeparator
+		//+ argPath(dseBundleFolder, "metrics") + pathSeparator
+		//+ argPath(laradFolder, "metricsv2") + pathSeparator
+		+ argPath(dseBundleFolder, "platforms") + pathSeparator
+		+ argPath(dseBundleFolder, "languages") + pathSeparator		
+		+ argPath(laradFolder, "includes/scripts") + pathSeparator
+		+ argPath(laradFolder);
+		//+ argPath(laradFolder, "includes/jalinkva");	
+	
+	data.setIncludeFolders(includes);
+	
+	data.setTools(argPath(laradFolder, "resources/tools.xml"));
+	/*
+	// Tools
+	clavaArgs += " -t " + argPath(laradFolder, "resources/tools.xml");
+	
+	// Verbose level
+	clavaArgs += " -b 2";
+	
+	// No weaving and no Clava info
+	clavaArgs += " -nw -nci";
+
+	if(WeaverOptions.getData().get("stack trace") === true) {
+		clavaArgs += " --stack";
+	}
+	*/
+
+	var logFile = log;
+	// If log file is set for LaradLauncher and no log file is set for Larad, 
+	// set new log file, to have separate logs for LaradLauncher and Larad
+	if(logFile === undefined && data.getLogFile() !== undefined) {
+	//var logFile = data.getLogFile();
+	//if(logFile != undefined) {
+		logFile = data.getLogFile();
+		var path = logFile.getAbsolutePath();
+		var extension = Io.getExtension(path);
+		logFile = Io.removeExtension(path) + ".larad." + extension;
+	}
+
+	// Set logfile, if defined
+	if(logFile !== undefined) {
+		data.setLogFile(logFile);
+	}
+
+
+	
+	
+
+	data.save("_temp.clava");
+	
+	// Input file and arguments
+	var clavaArgs = "-c _temp.clava";
+	
+	clavaArgs += " -bt compiler=" + compiler
+			+",algo=" + algo 
+			+ ",language=" + language 
+			//+ ",target=" + target 
+			//+ ",metric=" + metric 
+			+ ",platform=" + target;
+
+        /*
+        if(compilerFlags !== undefined && compilerFlags.length > 0) {
+            println("COMPILER FLAGS:" + compilerFlags);
+            clavaArgs += " -fs " + "\"" + compilerFlags + "\"";
+        }
+        */
+			
+	// If log file is set, add -j
+	if(logFile !== undefined) {
+		clavaArgs += " -j";
+	}
+	
+	println("CLAVA ARGS:"  + clavaArgs);
+	
+	//println("Running Clava: " + clavaArgs);
+	Clava.runClava(clavaArgs);
+end
+
+
+function argPath(baseFolderOrFile, optionalFile) {
+	var path = Io.getAbsolutePath(baseFolderOrFile, optionalFile);
+	
+	// Replacer accepts regular expressions, must escape "\" twice to use \\ as pattern
+	return Strings.replacer(path, "\\\\", "/");
+}
+
+function checkLanguage(language) {
+	checkType(language, "string", "LaradLauncher::checkLanguage");
+	
+	if(!WeaverOptions.getSupportedLanguages().contains(language)) {
+		throw "LaradLauncher: language '"  + language  + "' not supported. Supported languages: " + WeaverOptions.getSupportedLanguages();
+	}
+}

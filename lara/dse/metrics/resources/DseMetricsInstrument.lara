@@ -1,0 +1,9 @@
+import <SECTION_PROVIDER>;
+import DseMetricsInstrumentAux;
+
+aspectdef DseMetricsInstrument
+
+	call codeSection : <SECTION_PROVIDER>();
+	call DseMetricsInstrumentAux(codeSection.$start, codeSection.$end);
+	
+end

@@ -1,0 +1,48 @@
+import lara.metrics.Metric;
+import lara.metrics.MetricResult;
+import dse.metrics.PerformanceMetricOrpsocAspects;
+import lara.Strings;
+
+/**
+ * Measures code size of an application.
+ * @constructor
+ */
+function PerformanceMetricOrpsoc() {
+    // Parent constructor
+    Metric.call(this);
+}
+// Inheritance
+PerformanceMetricOrpsoc.prototype = Object.create(Metric.prototype);
+
+
+// Override
+PerformanceMetricOrpsoc.prototype.instrument = function($start, $end) {
+
+	call OrpsocInstrument();
+/*
+	select pragma end
+	apply
+		if($pragma.name !== "monitor") {
+			continue;
+		}
+
+
+		if($pragma.content === "start") {
+			$pragma.insert replace %{asm("l.nop 5");}%;
+		} else {
+			$pragma.insert replace %{asm("l.nop 6");}%
+		}
+	end
+*/
+}
+
+// Override
+PerformanceMetricOrpsoc.prototype.report = function(processExecutor) {
+	var value = Strings.extractValue("CPU cycles: ", processExecutor.getConsoleOutput());
+	return new MetricResult(value, "cycles");
+}
+
+// Override
+PerformanceMetricOrpsoc.prototype.getImport = function() {
+		return "dse.metrics.PerformanceMetricOrpsoc";
+}

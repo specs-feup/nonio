@@ -1,0 +1,136 @@
+/*      Ricardo Nobre                                   *       
+ *      Departamento de Engenharia Informática          *       
+ *      FEUP, Porto, Portugal                           *
+ *      ricardo.nobre@fe.up.pt                          */
+
+import DseRun;
+
+aspectdef CleanSequence
+	input
+		clean, cleaning_percent=0;
+	end
+
+	// TODO: Add more "cleaning" modes.
+
+/*
+	function getRandomArrayElements(arr, count) {
+		var shuffled = arr.slice(0), i = arr.length, min = i - count, temp, index;
+		while (i-- > min) {
+			index = Math.floor((i + 1) * Math.random());
+			temp = shuffled[index];
+			shuffled[index] = shuffled[i];
+			shuffled[i] = temp;
+		}
+		return shuffled.slice(min);
+	}
+*/
+
+	function removeNumElements(arr, count) {
+
+		if(count == 0) {
+			return arr;
+		}
+		else {
+			var newArr = arr.slice(0);
+			newArr.splice(Math.floor(Math.random()*newArr.length), 1);
+			count = count - 0;
+			return removeNumElements(newArr, count);
+
+		}
+
+	}
+
+        var bestConfigFitnessFullConfig = DseRun.getBestSolutionFitness();
+
+	var MAX_NUM_PASSES = 10;
+
+	if(clean == 1) {	// Sequential clean (from left to right)
+
+		var i = 0;
+
+
+		for (var pass_num = 0; pass_num < MAX_NUM_PASSES; pass_num += 1) {
+
+			println("Cleaning pass number" + (pass_num + 1) + " ...");
+
+			if (DseRun.getBestSolutionConfig().length == 0) {
+				println("   Sequence is empty...");
+				continue;
+			}
+
+			var i = 0;
+			DseRun.reset();	// so that some configuratins are evaluated again
+
+			while(i < DseRun.getBestSolutionConfig().length) {
+
+				var newConfig = new Array();
+
+				var j;
+				for (j=0; j<DseRun.getBestSolutionConfig().length; j++) {
+					newConfig[j] = DseRun.getBestSolutionConfig()[j];
+				}
+
+
+				newConfig.splice(i, 1); // Removes one element from position 'i'.
+
+				//          println(newConfig.join(" "));
+				//
+				//          println("bestSeq length: " + bestSeq.length);
+				//			println("newConfig length: " + newConfig.length);
+
+				var newFitness = DseRun.compile_execute_and_report(newConfig);
+
+				println(newConfig.join(" ") + "(" + newConfig.length + ") : " + newFitness);
+
+				if(DseRun.isSolutionValid(newFitness) == false) {
+					i = i + 1;
+					println("Problematic sequence: " + newConfig.join(" "));
+					continue;       // goes to the next iteration ignoring previous configuration
+				}
+
+				if(newFitness / bestConfigFitnessFullConfig > (1.0 + (cleaning_percent / 100))) {	// New fitness its worse than best fitness found even considering a tolerance of 'cleaning_percent' percent
+					i = i + 1;
+					continue;
+				}
+				else {  // If smaller sequence has same or better latency then do the following.
+					DseRun.updateBestSolution(newConfig, newFitness);
+				}
+			}
+		}
+	}
+	// TODO: add multiple passes to cleaning strategy below (like in the above)
+	else if(clean == 2) {	// Random clean (tries to remove 10 pecent of the passes each time and stops if the test for removal of MAX_TRIALS sets is not used)
+		var nr_trials = 0;
+		var MAX_TRIALS = 1000; // bestSeq.length;
+		while((nr_trials < MAX_TRIALS) && (DseRun.getBestSolutionConfig().length >= 1)) {	
+
+			nr_trials += 1;
+
+			var newConfig = removeNumElements(DseRun.getBestSolutionConfig(), Math.ceil(DseRun.getBestSolutionConfig().length * 0.1));	// Reduces size by 10% each time
+			var newFitness = DseRun.compile_execute_and_report(newConfig);
+
+			if(DseRun.isSolutionValid(newFitness) == false) {
+				println("Problematic sequence: " + newConfig.join(" "));
+				continue;       // goes to the next iteration ignoring previous configuration
+			}
+
+			if(newFitness / bestConfigFitnessFullConfig > (1.0 + (cleaning_percent / 100))) {       // So nao aceita se ao ser pior for pior que 1%
+				println("NEW SOLUTION NOT ACCEPTED");
+				continue;
+			}
+			else {  // If smaller sequence has same or better latency then do the following.
+				//i = i - 1;
+
+				//bestSeqLatency = newFitness;
+				//bestSeq = newConfig;      // TODO: maybe needed to do slice(0)
+				DseRun.updateBestSolution(newConfig, newFitness);
+
+				println("NEW SOLUTION ACCEPTED ( length: " + DseRun.getBestSolutionConfig().length + " )");
+			}
+
+		}
+	}
+
+
+
+end

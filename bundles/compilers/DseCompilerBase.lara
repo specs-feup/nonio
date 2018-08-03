@@ -1,0 +1,128 @@
+
+import LaradSetup;
+import lara.Io;
+import lara.util.PrintOnce;
+
+/**
+ * Represents a compiler in the DSE (e.g., gcc, llvm...)
+ *
+ */
+var DseCompiler = {};
+
+
+/*** PRIVATE STATE ***/
+DseCompiler._filesToCheck = [];
+DseCompiler._filesToCheckErrors = [];
+
+
+/*** PUBLIC FUNCTIONS  ***/
+
+DseCompiler.measureBinarySize = function(binaryFile) {
+	checkDefined(binaryFile, "binaryFile", "DseCompiler.measureBinarySize");
+
+	var binaryJavaFile = Io.getPath(binaryFile);
+	if(Io.isFile(binaryJavaFile)) {
+		prinln("DseCompiler.measureBinarySize: Given binaryFile '" + binaryFile + "' is not a file");
+		return undefined;
+	}
+
+	return DseCompiler._measureBinarySizePrivate(binaryJavaFile);
+}
+
+DseCompiler.checkGeneratedFiles = function() {
+
+	for(var i=0; i < DseCompiler._filesToCheck.length; i++) {
+		if(Io.isFile(DseCompiler._filesToCheck[i]) == false) {
+				
+		// Temporary solution: if file does not exist, 
+		// check if the name as an executable exists
+			/*
+			if(Io.isFile(LaradSetup.getExeName(filesThatShouldExist[i])) === true) {
+				continue;
+			}
+			*/			
+			return DseCompiler._filesToCheckErrors[i];
+		}
+	}
+	
+}
+
+
+/*** PUBLIC FUNCTIONS THAT SHOULD BE OVERRIDEN ***/
+
+DseCompiler.clean = function() {
+	throw "DseCompiler.clean: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+
+DseCompiler.compileLauncher = function() {
+	throw "DseCompiler.compileLauncher: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+
+DseCompiler.frontend = function() {
+	throw "DseCompiler.frontend: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+
+DseCompiler.opt = function(optFlags) {
+	throw "DseCompiler.opt: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+
+DseCompiler.backend = function() {
+	throw "DseCompiler.backend: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+
+DseCompiler.link = function() {
+	throw "DseCompiler.link: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+
+DseCompiler.getTestExecutable = function() {
+	throw "DseCompiler.getTestExecutable: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+
+DseCompiler.getVerificationExecutable = function() {
+	throw "DseCompiler.getVerificationExecutable: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+
+/**
+ * @returns {lara.util.ProcessExecutor} ProcessExecutor object that was used to execute the program.
+ */
+ /*
+DseCompiler.execute = function() {
+	throw "DseCompiler.execute: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+*/
+
+
+
+
+/*** PRIVATE FUNCTIONS THAT SHOULD BE OVERRIDEN ***/
+
+DseCompiler._measureBinarySizePrivate = function(binaryJavaFile) {
+	PrintOnce.message("DseCompiler.measureBinarySize: Using default implementation which returns the size of file as given by the file system.");
+	
+	return binaryJavaFile.length();
+}
+
+
+/*** PRIVATE FUNCTIONS THAT CAN BE USED TO CUSTOMIZE DSECOMPILER ***/
+
+DseCompiler._addGeneratedFileCheck = function(filename, errorMessage) {
+	checkDefined(filename, "filename", "DseCompiler._addGeneratedFileCheck");
+	
+	if(errorMessage === undefined) {
+		errorMessage = "<No error message defined for missing file '" + filename + "'>";
+	}	
+	
+	DseCompiler._filesToCheck.push(filename);
+	DseCompiler._filesToCheckErrors.push(errorMessage);
+}
+
+/**
+ * @returns {Object} Maps the name of files that are expected to exist to a error message if they do not exist.
+ */
+ /*
+DseCompiler._getGeneratedFilesMap = function() {
+	throw "DseCompiler._getGeneratedFilesMap: not implemented yet for compiler '" + LaradSetup.compiler + "'";
+}
+*/
+
+/*** PRIVATE FUNCTIONS TO BE USED BY DSECOMPILER IMPLEMENTATION ***/

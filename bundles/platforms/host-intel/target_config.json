@@ -1,0 +1,23 @@
+{
+
+	"compiler" : {
+		"gcc" : {
+			"passes":"passes_v540.json",
+			"compilemain_params":["-march=native -ffp-contract=fast -fopenmp"],
+			"frontend_params":[],
+			"opt_params":["-march=native -ffp-contract=fast -fopenmp"],
+			"backend_params":[],
+			"link_params":["-march=native -ffp-contract=fast -fopenmp"]
+		},
+		"llvm" : {
+			"passes":"passes_v371_intelhaswell.json",
+			"compilemain_params":["-march=native", "-mcpu=native -fp-contract=fast", "-march=native -fopenmp=libomp -I /opt/llvm-openmp-3.7.1/include"],
+			"frontend_params":["-march=native -fopenmp=libomp -I /opt/llvm-openmp-3.7.1/include"],
+			"opt_params":[],
+			"backend_params":["-mcpu=native -fp-contract=fast"],
+			"link_params":["-fopenmp=libomp -L /opt/llvm-openmp-3.7.1/lib"]
+		}
+
+	}
+}
+

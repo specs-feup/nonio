@@ -1,0 +1,6 @@
+{
+	"gccFlags" : "-march=native",	
+	"verificationFlags" : "-march=native -fopenmp -lm"
+	
+}
+

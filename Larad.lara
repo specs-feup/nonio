@@ -1,0 +1,108 @@
+import lara.Strings;
+import lara.Io;
+import lara.System;
+import lara.Platforms;
+
+import LaradSetup;
+import DseStart;
+import DsePlatform;
+
+aspectdef Larad
+	input 
+		laradFoldername,
+		compiler="gcc",
+		compilerFolderName,
+		compilerPrefix,
+		specialLinker = undefined,
+		sourceFile,
+		nsteps=1000,
+		target="host-intel",
+		metric="performance",
+		algo="sa",
+		seqlen=32,
+		nexec=1,
+                minimumExecForReporting=30,
+		nr=-1,
+		clean=1,
+		passes="",
+		percent=2,
+		alreadyInstrumented=false,
+		isPhaseSelectionOnly=false,
+		isVerificationSeparated=false,
+		append="",
+		metrics = ["performance"],
+		language = "c"
+	end
+
+	/** CHECKS **/
+	
+	// get larad folder
+	checkDefined(laradFoldername, "laradFoldername");
+	var laradFolder = Io.getPath(laradFoldername);
+	checkTrue(Io.isFolder(laradFolder), "Given larad folder '" + laradFoldername + "' does not exist");
+	
+	// cfile must be defined, and be a .c file
+	checkDefined(sourceFile, "sourceFile");
+	checkTrue(sourceFile.endsWith(".c") || sourceFile.endsWith(".cpp") || sourceFile.endsWith(".cl"), "Expected cfile to end with .c/.cl");
+	checkTrue(Io.isFile(sourceFile), "Given cfile folder '" + sourceFile + "' does not exist");
+	
+	checkTrue(!Strings.isEmpty(target), "target should not be empty");
+	
+	//var parsedCompiler = compiler === "llvmfunc" ? "llvm" : compiler;
+	
+	// check if metrics are supported
+	var supportedMetrics = DsePlatform.getSupportedMetrics();
+
+	for(var userMetric of metrics) {
+		if(supportedMetrics.indexOf(userMetric) === -1) {
+			throw "Metric '" + userMetric +  "' not supported. Supported metrics for platform '" + target + "': " + supportedMetrics.join(", ");
+		}
+	}
+
+	/** LARADSETUP INFO **/
+
+	LaradSetup.sourceFile = sourceFile;
+	LaradSetup.metrics = metrics;
+	LaradSetup.language	= language;
+	LaradSetup.platform	= target;
+	LaradSetup.compiler = compiler;
+	LaradSetup.isAspectVersion = true;
+	LaradSetup.laradFolder = laradFoldername;
+	LaradSetup.compilerFolder = compilerFolderName;
+	LaradSetup.compilerPrefix = compilerPrefix;
+	
+	LaradSetup.isVerificationSeparated = isVerificationSeparated;
+	LaradSetup.isPhaseSelectionOnly = isPhaseSelectionOnly;
+	LaradSetup.specialLinker = specialLinker;
+	LaradSetup.alreadyInstrumented = alreadyInstrumented;
+	
+	
+	/** PREPARE FOLDER **/
+
+	// With custom bundles no longer needed, read directly the original files
+	
+	//Io.copyFile(Io.getPath(laradFoldername, "cleanseq.lara"), "./");
+	//Io.copyFile(Io.getPath(laradFoldername, "compilers/" + parsedCompiler + "/compiler_optimlevels.lara"), "./");
+	//Io.copyFile(Io.getPath(laradFoldername, "compilers/lara/compiler_setup.lara"), "./");
+	//Io.copyFile(Io.getPath(laradFoldername, "algorithms/" + algo + "/dse_algo.lara"), "./");
+	//Io.copyFile(Io.getPath(laradFoldername, "dse.lara"), "./");
+	
+	call DseStart(maxwidth=seqlen,nexecutions=nexec,nexec_reporting=minimumExecForReporting,iterations=nsteps,compilerName=compiler,targetName=target,metricName=metric,nr=nr,clean=clean,passes=passes,cleaning_percent=percent,aditionalflags='',larad_path=laradFoldername);
+	/*
+	var laraiCmd = "larai";
+	if(Platforms.isWindows()) {
+		laraiCmd = "java -jar larai.jar";
+	}
+	
+	System.execute(laraiCmd + " --help");
+	*/
+//	System.execute(String(laraiCmd + " dse.lara -av \"{cfile:'$cfile',maxwidth:$seqlen,nexecutions:$nexec,iterations:$nsteps,compilerName:'$compiler',targetName:'$target',metricName:'$metric',nr:'$nr',clean:'$clean',passes:'$passes',cleaning_percent:$percent,aditionalflags:'',larad_path:'$LARAD_HOME'}\" -i $LARAD_HOME/larai/includes/scripts:$LARAD_HOME/larai/includes/java -t $LARAD_HOME/larai/resources/tools.xml -b 2 2>&1 | tee \"$cfile\"_\"$seqlen\"_\"$nexec\"_\"$nsteps\"_\"$algo\"_\"$target\"_\"$compiler\"_\"$nr\"_\"$clean\"_\"$append\".txt"));
+	
+	/** CLEAN **/ 
+	//Io.deleteFile("cleanseq.lara");
+	//Io.deleteFile("compiler_optimlevels.lara");
+	//Io.deleteFile("compiler_setup.lara");
+	//Io.deleteFile("dse_algo.lara");
+	//Io.deleteFile("dse.lara");
+	
+end

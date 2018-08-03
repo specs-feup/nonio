@@ -1,0 +1,7 @@
+{
+	"clangFlags" : "--target=or1k-unknown-none-elf",	
+	"llcFlags" : "-march=or1k",
+	"verificationFlags" : ""
+	
+}
+

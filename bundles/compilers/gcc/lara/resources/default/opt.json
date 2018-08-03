@@ -1,0 +1,3 @@
+{
+	"gccFlags" : "-march=native -fopenmp -Ofast"
+}

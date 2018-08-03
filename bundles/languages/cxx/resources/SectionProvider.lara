@@ -1,0 +1,41 @@
+
+aspectdef SectionProvider
+	output $start, $end end
+
+	$start = undefined;
+	$end = undefined;
+	
+	var found = false;
+	//select file{fileName}.function{functionName}.pragma end
+	select file.function.pragma end
+	apply
+		if($pragma.name !== "monitor") {
+			continue;
+		}
+		
+		if($pragma.content === "start") {
+			$start = $pragma;
+			
+			// Warn if found more than one start
+			if(found) {
+				println("SectionProvider: found more than one #pragma monitor start");
+			} else {
+				found = true;
+			}
+			
+			continue;
+		}
+
+		if($pragma.content === "stop") {
+			$end = $pragma;
+			continue;
+		}
+		
+
+	end
+
+	if(!found) {
+		throw "SectionProvider: could not find a #pragma monitor start in the given code";
+	}
+		
+end

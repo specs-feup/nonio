@@ -1,0 +1,100 @@
+import dse.metrics.MetricsMap;
+
+/**
+ * Represents the platform of the DSE (e.g., host-intel, microblaze...)
+ *
+ */
+var DsePlatform = {};
+
+/** INIT **/
+
+// Metrics
+//DsePlatform.metrics = DsePlatform._buildMetricsMap();
+DsePlatform.metrics = new MetricsMap();
+
+/** Private functions that new platform must implement to build the platform **/
+
+
+/*
+DsePlatform._init = function() {
+	throw "DsePlatform._init(): Not implemented yet";
+}
+*/
+
+/** 
+ * @return {MetricsMap} The MetricsMap object representing the metrics supported by this platform
+ */
+ /*
+DsePlatform._buildMetricsMap = function() {
+	throw "DsePlatform._buildMetricsMap() not implemented for platform '" + LaradSetup.platform + "'";
+}
+*/
+
+
+
+
+/** PUBLIC API **/
+
+DsePlatform.getSupportedMetrics = function() {
+	return this.metrics.getSupportedMetrics();
+	//return Object.getOwnPropertyNames(this.metrics);
+}
+
+DsePlatform.getMetricImport = function(name) {
+	return this.metrics.getImport(name);
+}
+
+DsePlatform.getMetricObjectName = function(name) {
+	return this.metrics.getObjectName(name);
+}
+
+/**
+ * @returns {[lara.metrics.MetricResult]} An array with the results of the metrics.
+ */
+DsePlatform.extractMetrics = function(metricsNames, executedProcess) {
+	var metrics = [];
+	for(var metricName of metricsNames) {
+		var metric = this.metrics.report(metricName, executedProcess);
+		
+		if(metric === undefined) {
+			return undefined;
+		}
+		
+		metrics.push(metric);
+	}
+	
+	return metrics;
+}
+
+/**
+ * @returns {lara.util.ProcessExecutor} ProcessExecutor object that was used to execute the program, or undefined if there was a problem with execution.
+ */
+DsePlatform.execute = function() {
+	throw "DseCompiler.execute: not implemented yet for platform '" + LaradSetup.platform + "'";
+}
+
+
+/**
+ * @returns {String} String that identifies what compiler configuration that should be used (e.g., to choose which flags to use)
+ */
+DsePlatform.getCompilerConfig = function() {
+	return "default";
+}
+
+/** Private functions that should be used to build the platform **/
+DsePlatform._addMetric = function(name, metric) {
+	this.metrics.addMetric(name, metric);
+}
+/*
+DsePlatform._addMetric = function(name, importPath) {
+	checkType(name, "string", "DsePlatform._addMetric::name");
+	checkType(importPath, "string", "DsePlatform._addMetric::importPath");
+	
+	var previousImport = this.metrics[name];
+	if(previousImport !== undefined) {
+		info("metric '" + name + "' was already defined, value of previous import was '" + previousImport + "'. Replacing with import '" + importPath + "'");
+	}
+	
+	this.metrics[name] = importPath;
+}
+*/

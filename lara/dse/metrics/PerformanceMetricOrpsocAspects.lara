@@ -1,0 +1,34 @@
+
+aspectdef OrpsocInstrument
+        select pragma end
+        apply
+                if($pragma.name !== "monitor") {
+                        continue;
+                }
+
+
+                if($pragma.content === "start") {
+                        $pragma.insert replace %{asm("l.nop 5");}%;
+                } else {
+                        $pragma.insert replace %{asm("l.nop 6");}%;
+                }
+        end
+
+
+	var sucessRegex = /(return\s+)(10)(\s*;)/;
+	var failRegex = /(return\s+)(1)(\s*;)/;
+	select stmt end
+	apply
+		var stmtCode = $stmt.code;
+		if(sucessRegex.test(stmtCode)) {
+			$stmt.insert replace %{asm("l.nop 13");}%;
+			continue;
+		}
+
+		if(failRegex.test(stmtCode)) {
+			$stmt.insert replace %{asm("l.nop 14");}%;
+			continue;
+		}
+	end
+end
+

@@ -1,0 +1,75 @@
+import lara.Io;
+import lara.System;
+import LaradSetup;
+
+/**
+ * Utility methods for DSE.
+ * @class
+ */
+var DseUtils = {};
+
+/**
+ * By default, logs the output to a file in the folder "logs"
+ */
+DseUtils.executeTool = function(command, filename, timeout, timeunit) {
+	checkDefined(command, "command", "DseUtils.executeTool");
+
+	//println("EXECUTING COMMAND:" + command);
+	
+	if(timeunit === undefined) {
+		timeunit = LaradSetup.defaultTimeUnit;
+	}
+
+	//println("DseUtils.executeTool: timeout" + timeout);
+	//println("DseUtils.executeTool: timeunit" + timeunit);
+
+	var logFile = DseUtils.getLogFile(filename);
+	
+	// Log timestamp and executed command
+	var date = new Date();
+	var logEntry = "[" + date.toUTCString() + "] " + command + "\n";
+
+	Io.appendFile(logFile, logEntry);
+
+	var processExecutor = new ProcessExecutor();
+	processExecutor
+		.setPrintToConsole(false)
+		.setOutputFile(logFile)
+		.setAppend(true)
+		.setTimeout(timeout)
+		.setTimeUnit(timeunit)
+		.execute(command);
+	
+	
+	//System.execute(command, undefined, false, logFile, true, timeout);
+	return processExecutor;
+}
+
+DseUtils.getLogFile = function(filename) {
+
+	// If filename undefined, use default name
+	if(filename === undefined) {
+		filename = "log.txt";
+	} else {
+		checkType(filename, "string", "DseUtils.executeTool::filename");
+		
+		// Add extension, if not present
+		if(filename.indexOf(".") === -1) {
+			filename += ".txt";
+		}
+	}
+
+	
+	return Io.getPath("logs", filename);
+}
+
+DseUtils.log = function(message, filename) {
+	
+        checkDefined(message, "message", "DseUtils.log");
+
+	var logFile = DseUtils.getLogFile(filename);
+	var date = new Date();
+	var logEntry = "[" + date.toUTCString() + "]" + message + "\n";
+	Io.appendFile(logFile, logEntry);
+
+}

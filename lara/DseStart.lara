@@ -1,0 +1,212 @@
+/*      Ricardo Nobre                                   *
+ *      Departamento de Engenharia Informática          *
+ *      FEUP, Porto, Portugal                           *
+ *      ricardo.nobre@fe.up.pt                          */
+
+import DseRun;
+import DseAlgo;
+import CleanSequence;
+
+aspectdef DseStart
+	input
+		maxSeqWidth=64, numExecutions=1, nexec_reporting=30, maxIterations=1000, compilerName="", targetName="", metricName="", nr=-1, cleaningMethod=0, passes="", cleaningPercentTolerance=0, aditionalflags="", larad_path="/opt/larad";
+	end
+
+	//println("LARA PATH: " + larad_path);
+	
+	var bundlesPath = larad_path + "/bundles";
+	//println("BUNDLES PATH: " + bundlesPath);
+	// SETUP OF LARA ENVIRONMENT
+	default_verbose_level = 0;
+	pipe = null;
+
+	// Sets random seed so that experiments are reproducible
+	Math.seedrandom('specs');
+
+//	var minimumLat = 1;	// This is not being used anymore, althougt it will stay because it may be usefull in future
+
+	var compiler_config_jsonObj = fileToJSON(bundlesPath + "/platforms/" + targetName + "/" + "/target_config.json");
+
+	//println("Compiler config:"  + compiler_config_jsonObj);
+	
+	var passesFile = bundlesPath + "/compilers/" + compilerName + "/" + compiler_config_jsonObj.compiler[compilerName].passes;
+//println("PASSES FILE: " + passesFile);
+	if(passes != "") {		// if the user passes as parameter the full path to a JSON file, then it is used instead of the default one 
+		passesFile = passes;
+	}
+	var dse_params_jsonObj = fileToJSON(passesFile);
+
+	var exploreParams = dse_params_jsonObj;
+
+	var sequences = [];
+
+	// starts with number of executions set to the minimum allowed for calculating the final metrics (if smaller than the number of executions set for the exploration phase)
+	// TODO: Only field 'compiler' of compiler_config_jsonObj is used inside startup, pass directly the compiler config (compiler_config_jsonObj[compilerName])
+	DseRun.startup(targetName, metricName, compiler_config_jsonObj.compiler[compilerName], compilerName, Math.max(nexec_reporting, numExecutions), aditionalflags, larad_path);
+
+	// INSERT INSTRUMENTATION CODE AND GENERATE IR (e.g., C -> LLVM Assembly)
+	DseRun.cleanAll();
+
+	DseRun.instrumentCode();
+	//if(alreadyInstrumented == false) {	
+		//DseRun.instrumentCode();
+	//}
+	DseRun.prepareCodeForCompilation();
+	
+	DseRun.frontend();
+
+	println("\n--------------------- DSE CONFIGURATION ------------------------");
+	println(" target: " + targetName + ", " + "compiler: " + compilerName + ", " + "metrics: " + metricName);
+	println("----------------------------------------------------------------\n");
+	println("Collecting fitness values for default optimization levels..."); // (in " + "CORRECT_THIS" + ")...");
+
+	var referenceConfigs_jsonObj = fileToJSON(bundlesPath + "/compilers/" + compilerName + "/referenceConfigs.json");
+
+	var referenceConfigsNames = referenceConfigs_jsonObj.referenceNames;
+	var referenceConfigs = referenceConfigs_jsonObj.referenceConfigs;
+
+	var referenceConfigsFitness = [];
+
+	var bestOfAll = DseRun.getWorsePossibleFitness();
+
+	// Save, print, and determine best fitness of all reference optimization configurations
+	for(var i=0; i < referenceConfigsNames.length; i++) {
+		var optimLevel = referenceConfigs[i];
+		var fitnessRef = DseRun.compile_execute_and_report( [ optimLevel ] );
+
+		if(fitnessRef <= 0) {
+			println("Problem evaluating " + referenceConfigsNames[i] + " . Evaluating again...");
+
+			i -= 1;
+			continue;
+		}
+
+		referenceConfigsFitness[i] = fitnessRef;
+		println("\t" + referenceConfigsNames[i] + ": " + referenceConfigsFitness[i]);
+		if(DseRun.isLeftFitnessBetterOrEqualThanRightFitness(referenceConfigsFitness[i], bestOfAll) == true) {
+			bestOfAll = referenceConfigsFitness[i];
+		}
+
+		//return;
+	}
+
+	
+	var startTime = (new Date()).getTime() / 1000.0;   // 'getTime()' gets time in miliseconds, so conversion to seconds is needed
+
+        DseRun.setNexecutions(numExecutions); // so that the exploration phase can rely on fewer executions
+	DseRun.reset();	// it is important to call this because the step counter will be >=1 at this point if there was any compilation before (e.g., using the standard optimization levels), and possibly the counter for the number of binaries saved from testing will also be >=1
+	
+
+	call DseAlgo : DseAlgo(exploreParams, maxIterations, maxSeqWidth, referenceConfigsFitness, sequences, nr);
+
+	var totalTime = ((new Date()).getTime() / 1000.0) - startTime;
+	var numIterationsProcessed = DseRun.getStepCounter();
+	var numSavedExecutions = DseRun.getNumSavedExecutions();
+	var numBinariesGenerated = DseRun.getNumBinariesGenerated();
+
+
+
+        // RUN BEFORE CLEANING
+        DseRun.reset();
+        DseRun.setNexecutions(nexec_reporting);
+        var finalFitness = DseRun.compile_execute_and_report( DseRun.getBestSolutionConfig() );
+        DseRun.updateBestSolution(DseRun.getBestSolutionConfig(), finalFitness);
+
+
+        DseRun.reset();
+        DseRun.setNexecutions(numExecutions); // so that the exploration phase can rely on fewer executions
+
+
+	println("\t" + "Best Solution (executed multiple times, before cleaning)\t : " + DseRun.getBestSolutionFitness() + "\t : " + DseRun.getBestSolutionConfig().join(" ") + "");
+
+	if(cleaningMethod != 0) {
+		println("\n------------------------ CLEANING ------------------------------");
+		println(" method: " + cleaningMethod + ", " + "tolerance(%): " + cleaningPercentTolerance);
+		println("----------------------------------------------------------------\n");
+
+	        // Recalculates fitness for best config
+                DseRun.setNexecutions(nexec_reporting);
+                DseRun.reset();
+        	var bestConfigFitnessReportExec = DseRun.compile_execute_and_report(DseRun.getBestSolutionConfig());
+        	DseRun.updateBestSolution(DseRun.getBestSolutionConfig(), bestConfigFitnessReportExec);       // as it is, it is not really needed to to this here because this value inside DseRun will not be used again before being rewriten
+
+
+		println("Cleaning best solution found..."); // (in " + "CORRECT_THIS" + ")...");
+
+		// Call sequence cleaner twice with the same parameters
+
+		//println("First pass...");	
+		call CleanSequence(cleaningMethod, cleaningPercentTolerance);
+
+
+/*		// NOT NEEDED ANYMORE
+                println("Second pass...");      //TODO: call only if sequence is not empty	
+                DseRun.setNexecutions(nexec_reporting);
+	        DseRun.reset();
+		call CleanSequence(cleaningMethod, cleaningPercentTolerance);
+*/
+
+	}
+
+
+        println("\nDesign Space Exploration Execution Stats...");
+        println("\tNumber Of DSE Iterations Processed : " + numIterationsProcessed);
+        println("\tExploration Time (in seconds) : " + totalTime.toFixed(3));
+
+        println("\tNumber of Binaries Generated :" + numBinariesGenerated);     // Prints number of executions that were avoided by recalling previous executions of identical binary
+        println("\tNumber of Binaries Saved From Testing :" + numSavedExecutions);      // Prints number of executions that were avoided by recalling previous executions of identical binary
+
+        var percentageBinariesTested = (1 - (numSavedExecutions / numBinariesGenerated)) * 100;
+        println("\tPercentage of Binaries Tested: " + percentageBinariesTested.toFixed(0) + "%");
+
+        // writeFile("./"+sourceFile+".seq", cleanseq.bestSeq.join(", "));      // Save the best sequence
+        // writeFile("./"+sourceFile+".speed", (cleanseq.bestSeqFitness.toFixed(0) * overBestReferenceConfig) + ";" + cleanseq.bestSeqFitness.toFixed(0) + ";" + overBestReferenceConfig.toFixed(6)); // Save fitness result
+        // writeFile("./"+sourceFile+".temp", totalTime.toFixed(3)); // Save exploration time
+
+
+	
+        // FINAL RUN
+	DseRun.reset();
+        DseRun.setNexecutions(nexec_reporting);
+	var finalFitness = DseRun.compile_execute_and_report( DseRun.getBestSolutionConfig() );
+        DseRun.updateBestSolution(DseRun.getBestSolutionConfig(), finalFitness);
+
+
+        DseRun.cleanAll();
+
+
+	println("\nBest Solution (after cleaning)...");
+	println("\tSequence : " + DseRun.getBestSolutionConfig().join(" "));
+	println("\tLatency  : " + DseRun.getBestSolutionFitness().toFixed(0));
+
+
+	println("\nSpeedup Over Reference Configurations...");
+
+	var bestSolutionFitness = DseRun.getBestSolutionFitness();
+	if(DseRun.isLeftFitnessBetterOrEqualThanRightFitness(bestSolutionFitness, bestOfAll) == true) {
+		bestOfAll = bestSolutionFitness;
+	}
+
+	var overBestReferenceConfig = DseRun.getWorsePossibleFitness();
+	var bestOfAllOverBestReferenceConfig = DseRun.getWorsePossibleFitness();
+	
+	for(var i=0; i < referenceConfigsNames.length; i++) {
+		var overReferenceConfig = referenceConfigsFitness[i] / DseRun.getBestSolutionFitness();
+		println("\tOver " + referenceConfigsNames[i] + " : " + overReferenceConfig.toFixed(3));
+		//var overReferenceConfigIncludingThem = referenceConfigsFitness[i] / bestOfAll;
+		//println("\tOver " + referenceConfigsNames[i] + " [including reference configs] : " + overReferenceConfigIncludingThem.toFixed(3));
+		if(((referenceConfigsFitness[i] / DseRun.getBestSolutionFitness()).toFixed(3)) < overBestReferenceConfig) {
+			overBestReferenceConfig = (referenceConfigsFitness[i] / DseRun.getBestSolutionFitness()).toFixed(3);
+		}
+		if(((referenceConfigsFitness[i] / bestOfAll).toFixed(3)) < bestOfAllOverBestReferenceConfig) {
+                        bestOfAllOverBestReferenceConfig = (referenceConfigsFitness[i] / bestOfAll).toFixed(3);
+        	}
+
+	}
+
+	println("\tImprovement Over -Ox : " + overBestReferenceConfig.toFixed(3));	// -Ox represents the best standard optimization level for the particular function/program being optimized
+	// println("\tOver -Ox [including reference configs] : " + bestOfAllOverBestReferenceConfig);
+
+
+
+end

@@ -1,0 +1,3 @@
+{
+	"backendFlags" : "-mcpu=native -fp-contract=fast"
+}

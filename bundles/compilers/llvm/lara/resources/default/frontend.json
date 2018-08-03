@@ -1,0 +1,3 @@
+{
+	"frontendFlags" : "-march=native -Ofast"
+}

@@ -1,0 +1,13 @@
+<IMPORTS>
+
+aspectdef DseMetricsInstrumentAux
+	input $start, $end end
+	
+	checkDefined($start, "$start", "DseMetricsInstrumentAux");
+	if($end === undefined) {
+		$end = $start;
+	}
+	
+<CALLS_TO_METRICS>
+	
+end

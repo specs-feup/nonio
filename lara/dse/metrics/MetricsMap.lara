@@ -1,0 +1,53 @@
+import lara.metrics.Metric;
+
+/**
+ * Reprents a table which maps metrics to their corresponding Lara import.
+ * @constructor
+ */
+function MetricsMap() {
+	this.metrics = {};
+}
+
+/**
+ * Adds a mapping between a metric name and the corresponding import
+ */
+MetricsMap.prototype.addMetric = function(name, metric) {
+	checkType(name, "string", "MetricsMap.addMetric::name");
+	checkInstance(metric, Metric, "MetricsMap.addMetric::metric");
+	
+	var previousImport = this.metrics[name];
+	if(previousImport !== undefined) {
+		info("MetricsMap.addMetric: metric '" + name + "' was already defined, replacing previous value");
+//	info("metric '" + name + "' was already defined, value of previous import was '" + previousImport + "'. Replacing with import '" + importPath + "'");
+	}
+	
+	this.metrics[name] = metric;
+}
+
+MetricsMap.prototype.getImport = function(name) {
+	return 	this.metrics[name].getImport();
+}
+
+MetricsMap.prototype.getObjectName = function(name) {
+	var importString = this.getImport(name);
+	var startIndex = importString.lastIndexOf(".");
+	if(startIndex === -1) {
+		startIndex = 0;
+	}
+	
+	return importString.substring(startIndex + 1);
+}
+
+
+MetricsMap.prototype.report = function(name, processExecutor) {
+	return this.metrics[name].report(processExecutor);
+}
+
+/**
+ * @return {Array} The names of the metrics currently in the map
+ */
+MetricsMap.prototype.getSupportedMetrics = function() {
+	return Object.getOwnPropertyNames(this.metrics);
+}
+
+

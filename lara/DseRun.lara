@@ -1,0 +1,507 @@
+/*      Ricardo Nobre                                   *
+ *      Departamento de Engenharia Informática          *
+ *      FEUP, Porto, Portugal                           *
+ *      ricardo.nobre@fe.up.pt                          */
+
+
+import LaradSetup;
+//import Compiler;
+import DseCompiler;		
+import DseLanguage;		
+
+import lara.Io;
+import weaver.WeaverLauncher;
+import weaver.WeaverOptions;		
+
+
+/**
+ * @class
+ */
+var DseRun = {};
+//compilerSetup.isAspectVersion = false;
+
+	var isMinimization = true;
+
+	var sequencesGenerated = {};
+	var sequencesGeneratedNumTimes = {};
+
+	var binaries_generated = {};
+        var numBinariesGenerated = 0;
+	var numBinariesSavedFromTesting = 0;
+	var bestSolution = {};
+	var totalSteps = 0;
+
+	//var language;
+	//var exporter_name;
+	var compilemain_params;
+	var frontend_params;
+	var opt_params;
+	var backend_params;
+	var link_params;
+
+	var compilerName;
+	var nexecutions;
+	var aditionalflags;
+	var larad_path;
+	var target_name;
+
+	var bundlesPath;
+	var laraPath;
+
+	DseRun.startup = function(target_name2, metric_name, compilerConfig, compilerName2, nexecutions2, aditionalflags2, larad_path2) {
+		
+
+		//language = compilerConfig.language;
+		//exporter_name = compilerConfig.exporter_name[metric_name][0];
+
+		target_name = target_name2;
+		
+		compilerName = compilerName2;
+		nexecutions = nexecutions2;
+		aditionalflags = aditionalflags2;
+		larad_path = larad_path2;
+		bundlesPath = larad_path + "/bundles";
+		laraPath = larad_path + "/lara";
+	
+		
+		
+		bestSolution.config = [];
+		bestSolution.fitness = isMinimization ? Number.MAX_VALUE : Number.MIN_VALUE;
+
+		//var jsonObj = fileToJSON(bundlesPath + "/compilers/" + compilerName + "/" + language + "/error_messages.json");
+		//filesThatShouldExist = jsonObj.filenames;
+		//messagesForMissingFiles = jsonObj.error_messages;
+
+		compilemain_params = compilerConfig.compilemain_params;
+		frontend_params = compilerConfig.frontend_params;
+		opt_params = compilerConfig.opt_params;
+		backend_params = compilerConfig.backend_params;
+		link_params = compilerConfig.link_params;
+
+	}
+
+
+
+	function sha256sum() {
+
+	
+
+		var hash = "0";
+		if(Io.isFile("function.optim.ll") === true) {	// for LLVM
+			hash = Io.md5("function.optim.ll");
+			//println(Io.readFile("function.optim.ll"));
+		}
+		else if(Io.isFile("function.optim.s") === true) {	// for GCC
+                        hash = Io.md5("function.optim.s");
+                        //println(Io.readFile("function.optim.s"));
+		}
+		//println("hash: " + hash);
+		return hash;
+	}
+
+	// Auxiliar function, used by 'execute_and_report' and by 'compile_execute_and_report'
+	function report_fitness(executedProcess) {
+		
+		
+
+		if(executedProcess === undefined) {
+			DseUtils.log("report_fitness: returning -1 due to executedProcess being undefined");
+			return -1;
+		}
+		
+		//println("DseRun.report_fitness: Return value is " + executedProcess.getReturnValue());
+
+		// Return value of '1' represents validation failed
+		if(executedProcess.getReturnValue() === 1) {
+			DseUtils.log("report_fitness: returning -1 due to return value being 1 (validation failed)");
+			return -1;
+		}
+		
+		// Return value different than '10' represents a problem during program execution
+		if(executedProcess.getReturnValue() !== 10) {
+			DseUtils.log("report_fitness: returning -1 due to return value being different than 10 (is " + executedProcess.getReturnValue() + ")");
+			return -1;
+		}
+		
+		//println("Return value: " + executedProcess.getReturnValue());
+		//println("Old fitness:" + fitness);
+		/*
+		println("Command:" + executedProcess.getCommand());
+		println("Working dir:" + executedProcess.getWorkingDir());
+		println("Console output:" + executedProcess.getConsoleOutput());
+		*/
+		//println("DseRun.report_fitness: LaradSetup.metrics -> " + LaradSetup.metrics);
+		var metricsMeasures = DsePlatform.extractMetrics(LaradSetup.metrics, executedProcess);
+		//println("METRICS:" + metricsMeasures);
+		//println("DseRun.report_fitness: metricsMeasures:");
+		//printObject(metricsMeasures);
+		var newFitness = undefined;
+		if(metricsMeasures === undefined) {
+			DseUtils.log("report_fitness: returning -1 due to metricsMeasures being undefined");
+			newFitness = -1;
+			//return -1;
+		} else {
+			newFitness = metricsMeasures[0].getValue();
+		}
+		
+		// TODO: Mix metrics in a fitness function
+		//var newFitness = metricsMeasures[0].getValue();
+		//println("New Fitness: " + newFitness);
+		//println("Truncate: " + parseInt(newFitness));
+		
+		//return fitness;
+		return parseInt(newFitness, 10);
+	}
+
+	/*
+	// NOT USED ANYMORE
+	function execute_script(scriptName, params) {
+
+		var scriptToExecute = "";
+		var pathToGenericScripts = larad_path + "/compilers/" + compilerName + "/" + language + "/scripts/";
+		var pathToSpecializedScripts = larad_path + "/targets/" + target_name + "/" + compilerName + "/scripts/";
+		
+		if(Io.isFile(pathToSpecializedScripts + scriptName)) {
+			scriptToExecute = pathToSpecializedScripts + scriptName;
+		}
+		else {
+			scriptToExecute = pathToGenericScripts + scriptName;
+		}
+
+		cmd("sh", [scriptToExecute, params[0], params[1], params[2], params[3], params[4], params[5]]);	// , mcpu, opencl_include, opencl_lib, liblc]);	// , 1);
+
+	}
+	*/
+
+	/**
+	 * Compiles the code.
+	 */
+	function compile(optimLevel){		
+
+		//if(LaradSetup.isAspectVersion) {
+		DseCompiler.opt(optimLevel);
+                DseCompiler.backend();
+		DseCompiler.link();
+			//Compiler.opt([aditionalflags + " " + optimLevel].concat(opt_params));
+			//Compiler.backend(backend_params);
+			//Compiler.link(link_params);
+		/*
+		}
+		else {
+			execute_script("opt.sh", [aditionalflags + " " + optimLevel].concat(opt_params));
+			execute_script("backend.sh", backend_params);
+			execute_script("link.sh", link_params);
+		}
+		*/
+	}
+
+	function execute_and_report() {
+
+			var latency = 0;
+			var hash = sha256sum();
+			//println("HASH:" + hash);
+
+			if(hash != 0) {	// '=0' means the generated final code (e.g., 'function.optim.s', 'function.ptx') does not exist
+				numBinariesGenerated += 1;
+			}
+
+			if(hash in binaries_generated) {	// binary has been already evaluated, so new execution is avoided
+					latency = binaries_generated[hash];
+					if(hash != 0) {
+						numBinariesSavedFromTesting += 1;
+					}
+			}
+			else
+			{
+					var latency_acc = 0;
+					for(var i=0; i<nexecutions; i++) {
+					//deleteFile("info.dat"); 
+
+						//if(LaradSetup.isAspectVersion) {
+						
+						var executedProcess = DsePlatform.execute();
+                                                
+						//var executedProcess = Compiler.execute();
+						/*
+						}
+						else {
+							execute_script("execute.sh", []);
+						}
+						*/
+
+						
+						var lat = report_fitness(executedProcess);
+						if((lat <= 0) || isNaN(lat)) {	// A single failed execution of any of the (e.g., 30) evaluations is enough to discard phase selection/ordering		// HACK: check if it is not a number (I guess this check should be performed in the 'report_fitness()' function
+							// binaries_generated[hash] = lat;	// NOTA: Ver isto com atencao, pois pode ser importante passar para cima o valor que realmente a funcao report_fitness() gerou
+							binaries_generated[hash] = -1;	// passa sempre -1 em caso de problemas
+							return lat;
+						}
+						latency_acc = latency_acc + lat;
+					}
+					latency = Math.floor(latency_acc / nexecutions);
+					binaries_generated[hash] = latency;
+			}
+			return latency;
+
+	}
+
+	
+	DseRun.frontend = function() {
+		//if(LaradSetup.isAspectVersion) {
+		DseCompiler.compileLauncher();
+		DseCompiler.frontend();
+			
+		//Compiler.compilemain(compilemain_params);
+		//Compiler.frontend(frontend_params);
+		
+		/*
+		}
+		else {
+			execute_script("compilemain.sh", compilemain_params);
+			execute_script("frontend.sh", frontend_params);
+		}
+		*/
+	}
+
+
+	function getProblemMessage(fitness) {
+
+		if(LaradSetup.checkGeneratedFiles == true) {
+			var errorMessage = DseCompiler.checkGeneratedFiles();
+			if(errorMessage !== undefined) {
+	//			println("problem:" + errorMessage);
+
+				return errorMessage;
+			}
+		//	else if(errorMessage == null) {	// 'errorMessage' is being set to null before calling this function if the solution is not valid
+		//		println("problem: is null");
+		//	}
+		}
+
+		// println("check_problem_fitness: " + fitness);
+
+		if(fitness == 0) {
+			return "Incorrect result";
+		}
+		else if(fitness == -1) {
+			return "Report is malformed";
+		}
+	}
+
+	DseRun.isSolutionValid = function (fitness) {
+
+		var errorMessage = DseCompiler.checkGeneratedFiles();
+
+		if(errorMessage !== undefined) {
+			//println("error message: " + errorMessage);
+			return false;
+		}
+		
+		else if(fitness <= 0) {	// '-1' means there were problems during reporting, '0' means the output of the code being optimized is different from expected
+			// println("error fitness: " + fitness);
+			return false;
+		}
+
+                else if(isNaN(fitness)) { // Happened sometimes... TODO: check why and solve
+                        // println("error fitness: " + fitness);
+                        return false;
+                }
+
+		else {
+			return true;
+		}
+	}
+
+	DseRun.printIterationInfo = function (sequence, fitness, symbolStr) {
+		
+		var message = symbolStr;
+
+		var isValid = DseRun.isSolutionValid(fitness);
+		if(isValid == false) {
+			message = getProblemMessage(fitness);
+			fitness = isMinimization ? Number.MAX_VALUE : Number.MIN_VALUE;	// (isMinimization ? "+" : "-") + "infinity";
+		}
+		println("\t" + totalSteps + " (" + message + ") : " + fitness + " : " + sequence.join(" "));
+
+	}
+
+
+	DseRun.compile_execute_and_report = function(sequence) {
+
+		var sequenceCopy = sequence.slice(0); // copies array so that the one passed as parameter is not changed
+
+		// CORRECTION: in fact order of flags matters even if it is only phase selection (maybe this can be an exploration parameter in future)
+		/*
+		if(LaradSetup.isPhaseSelectionOnly == true) {
+			sequenceCopy.sort();	// because order does not matter if phase selection only
+		}
+		*/
+
+		var optimLevel = sequenceCopy.join(" ");	// compresses sequence to save memory
+		var fitness = 0;
+		var compressedSeq = LZString.compress(optimLevel);
+
+		
+		if(compressedSeq in sequencesGenerated) {
+			fitness = sequencesGenerated[compressedSeq];
+			sequencesGeneratedNumTimes[compressedSeq] = sequencesGeneratedNumTimes[compressedSeq] + 1;
+		}
+		else {	// Only compiles and executes if sequence was not already tested
+			compile(optimLevel);
+			fitness = execute_and_report();
+			sequencesGenerated[compressedSeq] = fitness;
+			sequencesGeneratedNumTimes[compressedSeq] = 1;
+			totalSteps++;
+		}
+
+		return fitness;
+	}
+
+
+	DseRun.instrumentCode = function(metric) {	// TODO: use the metric
+
+		if(LaradSetup.alreadyInstrumented) {	
+			return;
+		}	
+	
+		var weaverDataStore = DseLanguage.prepareCodeForInstrumentation();
+		
+		// TODO: Add includes, instead of set
+		weaverDataStore.put("include", WeaverOptions.getData().get("include"));
+		weaverDataStore.put("verbose", WeaverOptions.getData().get("verbose"));
+		
+		// Write DataStore
+		weaverDataStore.save("instrument.datastore");
+		
+		var weaverLauncher = new WeaverLauncher(LaradSetup.language);
+		weaverLauncher.execute("-c instrument.datastore");
+		
+		// Delete DataStore
+		Io.deleteFile("instrument.datastore");
+		
+	}
+
+
+
+        DseRun.prepareCodeForCompilation = function() {      // TODO: use the metric
+                // Prepare code for compilation
+                DseLanguage.prepareCodeForCompilation();
+	}
+
+	DseRun.cleanAll = function() {
+	//	DseLanguage.clean();
+	//	DseCompiler.clean();
+	}
+
+	DseRun.getNumSavedExecutions = function() {
+		return numBinariesSavedFromTesting;
+	}
+
+
+	DseRun.getBestSolutionConfig = function() {
+		return bestSolution.config;
+	}
+
+	DseRun.getBestSolutionFitness = function() {
+		return bestSolution.fitness;
+	}
+
+	DseRun.updateBestSolution = function(newConfig, newFitness) {
+		bestSolution.config = newConfig;
+		bestSolution.fitness = newFitness;
+	}
+	
+
+
+	DseRun.getStepCounter = function() {
+		return totalSteps;
+	}
+
+	DseRun.getNumBinariesGenerated = function() {
+		return numBinariesGenerated;
+	}
+
+	// This is only to be called from 'dse_algo.lara' if there is a need to force the step counter
+	DseRun.forceIncreaseStepCounter = function() {
+		totalSteps++;
+	}
+
+	DseRun.reset = function() {
+		totalSteps = 0;
+		numBinariesSavedFromTesting = 0;
+		numBinariesGenerated = 0;
+		binaries_generated = {};
+
+		sequencesGenerated = {};
+		sequencesGeneratedNumTimes = {};
+	}
+
+
+
+	DseRun.getNumTimesSequenceWasGenerated = function(sequence) {
+		return sequencesGeneratedNumTimes[LZString.compress(sequence.join(" "))];
+	}
+
+	// NOTA: verificar se ha casos em que podem estar a ser passados NaN, e ver o que fazer nesses casos
+	DseRun.isLeftFitnessBetterOrEqualThanRightFitness = function (fitnessLeft, fitnessRight) {
+		if(isMinimization == true) {	// in case the objective of DSE is minimization of the target metric (which is the default)
+			if(fitnessLeft <= fitnessRight) return true;
+			else return false;
+		}
+		else {	// in case the objective is maximization
+			if(fitnessLeft >= fitnessRight) return true;	
+			else return false;
+
+		}
+	}
+
+	DseRun.getWorsePossibleFitness = function () {
+		return isMinimization == true ? Number.MAX_VALUE : Number.MIN_VALUE;
+	}
+
+	DseRun.setNexecutions = function (nexecutions2) {
+		nexecutions = nexecutions2;
+	}
+	
+
+	/*
+	// FOR DOING MEASURES 30 TIMES
+	function execute_and_report2() {
+		
+		var latency = 0;
+		var hash = sha256sum();
+
+//		if(hash in binaries_generated) {
+//			//println("BINARY ALREADY TESTED! SAVING EXECUTION! :)");
+//			latency = binaries_generated[hash];
+//			numBinariesSavedFromTesting += 1;
+//		}
+//		else
+		{
+			var latency_acc = 0;
+			for(var i=0; i<nexecutions; i++) {
+						cmd("sh", [larad_path + "/targets/" + target_name + "/" + compilerName + "/scripts/execute.sh", ""]);
+				var lat = report_fitness();
+				latency_acc = latency_acc + lat;
+			}
+			latency = Math.floor(latency_acc / nexecutions);
+			binaries_generated[hash] = latency;
+		}
+		return latency;
+
+	}
+
+*/
+
+//	frontend = frontend2;
+//	compile = compile2;
+//	execute_and_report = execute_and_report2;
+//	compile_execute_and_report = compile_execute_and_report2;
+//	check_sequence_is_valid = check_sequence_is_valid2;
+//	add_timing = add_timing2;
+//	cleanAll = cleanAll2;
+
+//end
+
+
+

@@ -1,0 +1,176 @@
+import DseCompilerBase;
+import DseCompilerResources;
+import DseLanguage;
+import LlvmUtils;
+import dse.DseUtils;
+import lara.util.ProcessExecutor;
+import lara.Io;
+import DsePlatform;
+
+
+/*** INITIALIZATION ***/
+
+DseCompiler._init = function() {
+	DseCompiler._addGeneratedFileCheck("main_wtiming.s",  "ASM for main function not generated");
+	DseCompiler._addGeneratedFileCheck("function.ll",  "IR for function to optimize not generated");
+	DseCompiler._addGeneratedFileCheck("function.optim.ll",  "Optimized function IR not generated");
+	DseCompiler._addGeneratedFileCheck("function.optim.s",  "ASM for optimized function IR not generated");
+	//DseCompiler._addGeneratedFileCheck(System.getExecutableName("application"),  "Binary not generated");
+	DseCompiler._addGeneratedFileCheck(LlvmUtils.getApplicationExeName(),  "Binary not generated");
+		
+	// Delete log file
+	Io.deleteFile(DseUtils.getLogFile(DseCompiler.LOG_FILENAME));
+}
+
+DseCompiler._temp = DseCompiler._init();
+
+DseCompiler.LOG_FILENAME = "DseCompiler";
+
+DseCompiler._getJson =function(path) {
+	return DseCompilerResources.getJson(DsePlatform.getCompilerConfig() + "/" + path);
+}
+
+/*** State to preserve between calls ***/
+ 
+/**
+ * Files that have been created by the compilation process.
+ */
+DseCompiler._compilationFiles = [];
+
+
+/*** PUBLIC FUNCTIONS OVERRIDE ***/
+
+DseCompiler.clean = function() {
+	
+	// Delete DseCompiler files
+	var files = Io.getPaths("./", LlvmUtils.getApplicationExeName(), LlvmUtils.getVerifyExeName(), "function.optim.ll", "function.optim.s", "function.ll", "main_wtiming.ll", "main_wtiming.s", "include.h", "*.dot");
+	for(var file of files) {
+		Io.deleteFile(file);
+	}
+
+}
+
+DseCompiler.compileLauncher = function() {
+	Io.deleteFiles("main_wtiming.ll", "main_wtiming.s");
+	
+	//var compileParams = DseCompiler._getJson("compile.json");
+	var compileParams = DseCompiler._getJson("compile.json");
+
+	var filesToCompile = DseLanguage.getLauncherFilesToCompile().join(" ");
+	DseUtils.executeTool(LlvmUtils.getClang() + " " + filesToCompile + " " + compileParams.clangFlags + " -emit-llvm -S -o main_wtiming.ll", DseCompiler.LOG_FILENAME);
+	DseUtils.executeTool(LlvmUtils.getLlc() + " " + compileParams.llcFlags + " main_wtiming.ll -o main_wtiming.s", DseCompiler.LOG_FILENAME);
+	
+
+	// If verification is performed in a separated main
+	var verifyExeName = LlvmUtils.getVerifyExeName();
+	if(LaradSetup.isVerificationSeparated === true) {
+		Io.deleteFile(verifyExeName);
+		var verificationFilesToCompile = DseLanguage.getVerificationFilesToCompile().join(" ");
+
+	    var linkParams = DseCompiler._getJson("link.json");
+
+		var linker = LlvmUtils.getClang(); // default linker
+		if(Io.isFile(LaradSetup.specialLinker)) {
+			linker = LaradSetup.specialLinker;
+		}
+		//println("linker: " + linker);
+
+		var verifyExecutor = new ProcessExecutor();
+		verifyExecutor.setTimeout(LaradSetup.defaultTimelimit)
+			.execute(linker + " " + compileParams.verificationFlags + " " + verificationFilesToCompile + " " + " -o " + verifyExeName);
+			//.execute(linker + " " + " " + verificationFilesToCompile + " " + linkParams.linkFlags + " -o " + verifyExeName);
+			
+	}
+}
+
+DseCompiler.frontend = function() {
+	Io.deleteFile("function.ll");
+		
+	var frontendParams = DseCompiler._getJson("frontend.json");
+		
+	var filesToCompile = DseLanguage.getKernelFilesToCompile().join(" ");
+	DseUtils.executeTool(LlvmUtils.getClang() + " " + frontendParams.frontendFlags + " " + filesToCompile + " -emit-llvm -S -o function.ll", DseCompiler.LOG_FILENAME);
+}
+
+DseCompiler.opt = function(optFlags) {
+
+	Io.deleteFiles("function.optim.ll", "*.dot");
+
+	var optParams = DseCompiler._getJson("opt.json");
+	
+	DseUtils.executeTool(LlvmUtils.getOpt() + " " + optFlags + " " + optParams.optFlags + " function.ll -S -o function.optim.ll", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+	
+	//var processExecutor = new ProcessExecutor();
+	//processExecutor.setTimeout(LaradSetup.defaultTimelimit)
+	//	.execute(LlvmUtils.getOpt() + " " + optFlags + " " + optParams.optFlags + " function.ll -S -o function.optim.ll");
+}
+
+DseCompiler.backend = function() {
+
+	Io.deleteFiles("function.optim.s", LlvmUtils.getApplicationExeName());
+
+	var backendParams = DseCompiler._getJson("backend.json");
+
+	DseUtils.executeTool(LlvmUtils.getLlc() + " " + backendParams.backendFlags + " function.optim.ll -o function.optim.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+//	var processExecutor = new ProcessExecutor();
+//	processExecutor.setTimeout(LaradSetup.defaultTimelimit)
+//		.execute(LlvmUtils.getLlc() + " " + backendParams.backendFlags + " function.optim.ll -o function.optim.s");
+}
+
+DseCompiler.link = function() {
+
+	var linkParams = DseCompiler._getJson("link.json");
+
+
+	var linker = LlvmUtils.getClang(); // default linker
+	if(Io.isFile(LaradSetup.specialLinker)) {
+		linker = LaradSetup.specialLinker;
+	}
+	//println("linker: " + linker);
+
+	DseUtils.executeTool(linker + " " + linkParams.linkFlags + " -o " + LlvmUtils.getApplicationExeName() + " function.optim.s main_wtiming.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+//	var processExecutor = new ProcessExecutor();
+//	processExecutor.setTimeout(LaradSetup.defaultTimelimit)
+//		.execute(LlvmUtils.getClang() + " " + linkParams.linkFlags + " -o " + System.getExecutableName("application") + " function.optim.s main_wtiming.s");
+
+}
+
+DseCompiler.getTestExecutable = function() {
+	return Io.getPath(LlvmUtils.getApplicationExeName());
+}
+
+DseCompiler.getVerificationExecutable = function() {
+	return Io.getPath(LlvmUtils.getVerifyExeName());
+}
+
+/*
+DseCompiler.execute = function() {
+	
+	//Io.deleteFile("info.dat");
+	
+	var application = new ProcessExecutor();
+	application.setTimeout(LaradSetup.defaultTimelimit)
+		.setPrintToConsole(false);
+	
+	application.execute(System.getExecutableName("application"));
+		
+	// TODO: If file is not created, DSE system gives an "error", find out why
+	Io.writeFile("info.dat", application.getReturnValue());
+
+	if(LaradSetup.isVerificationSeparated === true) {
+		var verification = new ProcessExecutor();
+		verification.setTimeout(LaradSetup.defaultTimelimit)
+			.setPrintToConsole(false);
+	
+		// Execute verification in another ProcessExecutor
+		verification.execute(System.getExecutableName("application_verify"));
+
+		// Save result of verification ProcessExecutor		
+		application.setCustomReturnValue(verification.getReturnValue());
+	}
+	
+	return application;
+}
+*/
+/*** PRIVATE FUNCTIONS OVERRIDE ***/
+

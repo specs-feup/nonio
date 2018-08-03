@@ -1,0 +1,10 @@
+{
+	"compiler" : {
+		"gcc" : {
+			"passes":"passes_v540.json"
+		},
+		"llvm" : {
+			"passes":"passes_v390.json"
+		}
+	}
+}

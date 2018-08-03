@@ -1,0 +1,7 @@
+{
+	"clangFlags" : "-march=native -O3",	
+	"llcFlags" : "-mcpu=native",
+	"verificationFlags" : "-march=native -O3"
+	
+}
+

@@ -1,0 +1,37 @@
+import lara.Io;
+import lara.Platforms;
+import lara.System;
+import LaradSetup;
+
+var LlvmUtils = {};
+
+LlvmUtils.getClang = function() {
+	var compilerFolder = LaradSetup.getCompilerFolder();
+	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "clang", compilerFolder);
+}
+
+LlvmUtils.getLlc = function() {
+	var compilerFolder = LaradSetup.getCompilerFolder();
+	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llc", compilerFolder);
+}
+
+LlvmUtils.getOpt = function() {
+	var compilerFolder = LaradSetup.getCompilerFolder();
+	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "opt", compilerFolder);
+}
+
+LlvmUtils.getLlvmLink = function() {
+        var compilerFolder = LaradSetup.getCompilerFolder();
+        return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llvm-link", compilerFolder);
+}
+
+LlvmUtils.getApplicationExeName = function() {
+	return LaradSetup.getExeName("application.exe");
+	//return System.getExecutableName("application_verify");
+}
+
+LlvmUtils.getVerifyExeName = function() {
+	return LaradSetup.getExeName("application_verify.exe");
+	//return System.getExecutableName("application_verify");
+}
+

@@ -1,0 +1,75 @@
+import lara.Io;
+import lara.util.Replacer;
+import dse.metrics.MetricsResources;
+import DsePlatform;
+
+/**
+ * @class
+ */
+var DseMetrics = {};
+
+
+/*** PUBLIC FUNCTIONS ***/
+
+/**
+ * Creates the Lara files required for instrumenting the code.
+ *
+ * @returns {Java java.io.File} Java file pointing to the main aspect file.
+ */
+DseMetrics.buildInstrumentationCode = function(path, metrics, sectionProviderName, sectionProviderCode) {
+
+	// Write DseMetricsInstrumentAux
+	this._createDseMetricsInstrumentAux(path, metrics);
+
+	// Write SectionProvider
+	Io.writeFile(Io.getPath(path, sectionProviderName + ".lara"), sectionProviderCode);
+	
+	// Write DseMetricsInstrument
+	return this._createDseMetricsInstrument(path, sectionProviderName);
+}
+
+
+/*** PRIVATE FUNCTIONS ***/
+
+/**
+ * Creates the file DseMetricsInstrumentAux.lara in the given path, based on the metrics currently on the map.
+ *
+ * <p> The file DseMetricsInstrumentAux.lara contains a single aspect, DseMetricsMeasure, which has two inputs: <br>
+ * - $start, the starting point of the measure; <br>
+ * - $end, the ending point of the measure. This input is optional, if not present it will have the same value as $start; <br>
+ *
+ * @return {Java java.io.File} a Java File pointing to the file that was written.
+ */
+DseMetrics._createDseMetricsInstrumentAux = function(path, metrics) {
+	
+	var imports = "";
+	for(var metric of metrics) {
+		imports += "import " + DsePlatform.getMetricImport(metric) + ";\n";
+	}
+
+	var callCode = "";
+	for(var metric of metrics) {
+		callCode += "new " + DsePlatform.getMetricObjectName(metric) + "().instrument($start, $end);\n";
+	}
+	
+	var replacer = new Replacer(MetricsResources.getString("DseMetricsInstrumentAux.lara"));
+	replacer.replaceAll("<IMPORTS>", imports);
+	replacer.replaceAll("<CALLS_TO_METRICS>", callCode);
+	
+	var outputFolder = Io.mkdir(path);
+	var outputFile = Io.getPath(outputFolder, "DseMetricsInstrumentAux.lara");
+	Io.writeFile(outputFile, replacer.getString());
+	return outputFile;
+}
+
+DseMetrics._createDseMetricsInstrument = function(path, sectionProviderName) {
+
+	var replacer = new Replacer(MetricsResources.getString("DseMetricsInstrument.lara"));
+	replacer.replaceAll("<SECTION_PROVIDER>", sectionProviderName);
+	
+	var outputFolder = Io.mkdir(path);
+	var outputFile = Io.getPath(outputFolder, "DseMetricsInstrument.lara");
+	Io.writeFile(outputFile, replacer.getString());
+	return outputFile;
+}
+	
