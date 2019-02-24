@@ -5,7 +5,11 @@ SCRIPT=$(readlink -f "$0")
 # Absolute path this script is in, thus /home/user/bin
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-args="laradFoldername:"
+# Set environment variable with location of Nonio
+export NONIO_HOME=$SCRIPTPATH
+
+#args="laradFoldername:"
+args="dummy:"
 args2=$args\'$SCRIPTPATH\'
 
 
@@ -16,7 +20,10 @@ do
     #args3=$args2","
     #args4=$args3$var
 done
-echo "$args2"
+#echo "$args2"
 
-echo clava $SCRIPTPATH/LaradLauncher.lara --argv={$args2} -nw  -b 2 -s
-clava $SCRIPTPATH/LaradLauncher.lara --argv={$args2} -nw  -b 2 -s
+#echo clava $SCRIPTPATH/LaradLauncher.lara --argv=\"{$args2}\" -nw  -b 2 -s
+#clava $SCRIPTPATH/LaradLauncher.lara --argv=\"{$args2}\" -nw  -b 2 -s
+
+echo clava $SCRIPTPATH/LaradLauncher.lara --argv=$1 -nw  -b 2 -s
+clava $SCRIPTPATH/LaradLauncher.lara --argv=$1 -nw  -b 2 -s

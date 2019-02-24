@@ -10,7 +10,7 @@
 			"link_params":["-march=native -ffp-contract=fast -fopenmp"]
 		},
 		"llvm" : {
-			"passes":"passes_v371_intelhaswell.json",
+			"passes":"passes_v371.json",
 			"compilemain_params":["-march=native", "-mcpu=native -fp-contract=fast", "-march=native -fopenmp=libomp -I /opt/llvm-openmp-3.7.1/include"],
 			"frontend_params":["-march=native -fopenmp=libomp -I /opt/llvm-openmp-3.7.1/include"],
 			"opt_params":[],

@@ -1,19 +1,20 @@
 import clava.Clava;
 import lara.Io;
 import lara.Strings;
+import lara.System;
 import weaver.WeaverOptions;
 import LaradSetup;
 
 aspectdef LaradLauncher
 	input
-		laradFoldername,
+		//laradFoldername,
 		sourceFile,
 		compiler = "gcc",
 		nsteps = 1000,
 		language = "c",
 		target = "host-intel",
 		algo = "sa",
-		metric = "performance",
+		//metric = "performance",
 		compilerFolderName = undefined,
 		compilerPrefix = "",
 		specialLinker = undefined,	
@@ -28,14 +29,35 @@ aspectdef LaradLauncher
 		metrics = ["performance"],
 		alreadyInstrumented = false,
 		isVerificationSeparated = false,
-		log = undefined
+		log = undefined,
+		dummy = ""
 //		compilerFlags = undefined
 	end
 	
 	debug(true);
 
-	println("laradFoldername: " + laradFoldername);
+	//println("PATH env: " + System.getEnv("PATH"));
+	
 
+	
+	//println("laradFoldername: " + laradFoldername);
+	/*
+	if(laradFoldername === undefined) {
+		laradFoldername = Io.getPath(".").getAbsolutePath();
+	}
+	*/
+
+	var nonioHome = System.getEnv("NONIO_HOME");
+	
+	if(nonioHome === undefined) {
+		throw "Could not find environment variable 'NONIO_HOME', please set it before running Nonio.";
+	}
+	
+	//println("Nonio home: " + nonioHome);
+	//println("Detected Nonio in path '" + Io.getPath(laradFoldername).getCanonicalPath() + "'");
+	println("Detected Nonio in path '" + Io.getPath(nonioHome).getCanonicalPath() + "'");
+	laradFoldername = nonioHome;
+	
 	checkDefined(laradFoldername, "laradFoldername", "LaradLauncher");
 	checkDefined(sourceFile, "sourceFile", "LaradLauncher");
 
@@ -173,7 +195,7 @@ aspectdef LaradLauncher
 		clavaArgs += " -j";
 	}
 	
-	println("CLAVA ARGS:"  + clavaArgs);
+	//println("CLAVA ARGS:"  + clavaArgs);
 	
 	//println("Running Clava: " + clavaArgs);
 	Clava.runClava(clavaArgs);
