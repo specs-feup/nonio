@@ -57,6 +57,8 @@ DseCompiler.compileLauncher = function() {
 	var compileParams = DseCompiler._getJson("compile.json");
 
 	var filesToCompile = DseLanguage.getLauncherFilesToCompile().join(" ");
+	
+	debug("Executing DseCompiler.compileLauncher() - Compilation");
 	DseUtils.executeTool(GccUtils.getGcc() + " " + filesToCompile + " " + compileParams.gccFlags + " -S -o main_wtiming.s", DseCompiler.LOG_FILENAME);
 
 	// If verification is performed in a separated main
@@ -74,6 +76,7 @@ DseCompiler.compileLauncher = function() {
 		}
 		//println("linker: " + linker);
 
+		debug("Executing DseCompiler.compileLauncher() - Verifier");
 		var verifyExecutor = new ProcessExecutor();
 		verifyExecutor.setTimeout(LaradSetup.defaultTimelimit)
 			.execute(linker + " " + verificationFilesToCompile + " " + compileParams.verificationFlags + " " + " -o " + verifyExeName + " " + linkFlags);
@@ -101,6 +104,7 @@ DseCompiler.opt = function(optFlags) {
 	var optParams = DseCompiler._getJson("opt.json");
 
 	// optFlags must be allways after optParams.gcc flags 	
+	debug("Executing DseCompiler.opt()");
 	var execution = DseUtils.executeTool(GccUtils.getGcc() + " " + optParams.gccFlags + " " + optFlags + " function.c -S -o function.optim.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
 }
 
@@ -120,7 +124,8 @@ DseCompiler.link = function() {
 		linker = LaradSetup.specialLinker;
 	}
 	//println("linker: " + linker);
-
+	
+	debug("Executing DseCompiler.link()");
 	DseUtils.executeTool(linker + " " + linkFlags + " -o " + GccUtils.getApplicationExeName() + " function.optim.s main_wtiming.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
 
 }
