@@ -66,6 +66,7 @@ DseCompiler.compileLauncher = function() {
 		var verificationFilesToCompile = DseLanguage.getVerificationFilesToCompile().join(" ");
 
 	    var linkParams = DseCompiler._getJson("link.json");
+		var linkFlags = linkParams.linkFlags !== undefined ? linkParams.linkFlags : "";
 
 		var linker = GccUtils.getGcc(); // default linker/compiler
 		if(Io.isFile(LaradSetup.specialLinker)) {
@@ -75,7 +76,7 @@ DseCompiler.compileLauncher = function() {
 
 		var verifyExecutor = new ProcessExecutor();
 		verifyExecutor.setTimeout(LaradSetup.defaultTimelimit)
-			.execute(linker + " " + verificationFilesToCompile + " " + compileParams.verificationFlags + " " + " -o " + verifyExeName + " " + linkParams.linkFlags);
+			.execute(linker + " " + verificationFilesToCompile + " " + compileParams.verificationFlags + " " + " -o " + verifyExeName + " " + linkFlags);
             //println("VERIFICATION FLAGS: " + compileParams.verificationFlags);
                 if(verifyExecutor.getReturnValue() !== 0) {
                     throw "Could not generate separate verification binary\n" +
