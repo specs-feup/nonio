@@ -7,22 +7,22 @@ var LlvmUtils = {};
 
 LlvmUtils.getClang = function() {
 	var compilerFolder = LaradSetup.getCompilerFolder();
-	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "clang", compilerFolder);
+	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "clang", compilerFolder, true);
 }
 
 LlvmUtils.getLlc = function() {
 	var compilerFolder = LaradSetup.getCompilerFolder();
-	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llc", compilerFolder);
+	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llc", compilerFolder, true);
 }
 
 LlvmUtils.getOpt = function() {
 	var compilerFolder = LaradSetup.getCompilerFolder();
-	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "opt", compilerFolder);
+	return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "opt", compilerFolder, true);
 }
 
 LlvmUtils.getLlvmLink = function() {
         var compilerFolder = LaradSetup.getCompilerFolder();
-        return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llvm-link", compilerFolder);
+        return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llvm-link", compilerFolder, true);
 }
 
 LlvmUtils.getApplicationExeName = function() {
