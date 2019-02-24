@@ -19,7 +19,7 @@ xmalloc (size_t num)
   void* cur = NULL;
   int ret = 0;
   #ifdef __unix__ 
-	  int ret = posix_memalign (&cur, 32, num);
+	  ret = posix_memalign (&cur, 32, num);
   #elif defined(_WIN32) || defined(WIN32) 
 	  cur = _aligned_malloc(num, 32);
 	  printf("cur windows: %p", cur);
