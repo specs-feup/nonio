@@ -36,6 +36,9 @@ aspectdef Larad
 
 	/** CHECKS **/
 	
+	debug(true);
+
+	
 	// get larad folder
 	checkDefined(laradFoldername, "laradFoldername");
 	var laradFolder = Io.getPath(laradFoldername);
