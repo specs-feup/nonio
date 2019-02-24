@@ -75,7 +75,7 @@ DseCompiler.compileLauncher = function() {
 
 		var verifyExecutor = new ProcessExecutor();
 		verifyExecutor.setTimeout(LaradSetup.defaultTimelimit)
-			.execute(linker + " " + verificationFilesToCompile + " " + compileParams.verificationFlags + " " + " -o " + verifyExeName);
+			.execute(linker + " " + verificationFilesToCompile + " " + compileParams.verificationFlags + " " + " -o " + verifyExeName + " " + linkParams.linkFlags);
             //println("VERIFICATION FLAGS: " + compileParams.verificationFlags);
                 if(verifyExecutor.getReturnValue() !== 0) {
                     throw "Could not generate separate verification binary\n" +
