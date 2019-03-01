@@ -105,22 +105,28 @@ var DseRun = {};
 		
 
 		if(executedProcess === undefined) {
-			DseUtils.log("report_fitness: returning -1 due to executedProcess being undefined");
-			return -1;
+			//DseUtils.log("report_fitness: returning -1 due to executedProcess being undefined");
+			//return -1;
+			DseUtils.log("report_fitness: failure, there is no information about process execution");
+			return undefined;
 		}
 		
 		//println("DseRun.report_fitness: Return value is " + executedProcess.getReturnValue());
 
 		// Return value of '1' represents validation failed
 		if(executedProcess.getReturnValue() === 1) {
-			DseUtils.log("report_fitness: returning -1 due to return value being 1 (validation failed)");
-			return -1;
+			//DseUtils.log("report_fitness: returning -1 due to return value being 1 (validation failed)");
+			//return -1;
+			DseUtils.log("report_fitness: failure, return value is 1 (validation failed)");
+			return undefined;			
 		}
 		
 		// Return value different than '10' represents a problem during program execution
 		if(executedProcess.getReturnValue() !== 10) {
-			DseUtils.log("report_fitness: returning -1 due to return value being different than 10 (is " + executedProcess.getReturnValue() + ")");
-			return -1;
+			//DseUtils.log("report_fitness: returning -1 due to return value being different than 10 (is " + executedProcess.getReturnValue() + ")");
+			//return -1;
+			DseUtils.log("report_fitness: failure, return value is different than 10 (is " + executedProcess.getReturnValue() + ")");
+			return undefined;			
 		}
 		
 		//println("Return value: " + executedProcess.getReturnValue());
@@ -140,20 +146,34 @@ var DseRun = {};
 
 		var newFitness = undefined;
 		if(metricsMeasures === undefined) {
-			DseUtils.log("report_fitness: returning -1 due to metricsMeasures being undefined");
-			newFitness = -1;
-			//return -1;
-		} else {
-			newFitness = metricsMeasures[0].getValue();
+			//DseUtils.log("report_fitness: returning -1 due to metricsMeasures being undefined");
+			//newFitness = -1;
+			DseUtils.log("report_fitness: failure, could not obtain measures for the metrics");
+			return undefined;
+		} 
+
+		// If any of the measures is a NaN, invalidate all results
+		for(var i=0; i<metricsMeasures.length; i++) {
+			if(isNaN(metricsMeasures[i].getValue())) {
+				DseUtils.log("report_fitness: failure, found a NaN in metric #" + (i+1));
+				return undefined;
+			}
 		}
 		
+		/*
+		else {
+			newFitness = metricsMeasures[0].getValue();
+		}
+		*/
+		
+		return metricsMeasures;
 		// TODO: Mix metrics in a fitness function
 		//var newFitness = metricsMeasures[0].getValue();
 		//println("New Fitness: " + newFitness);
 		//println("Truncate: " + parseInt(newFitness));
 		
 		//return fitness;
-		return parseInt(newFitness, 10);
+		//return parseInt(newFitness, 10);
 	}
 
 	/*
@@ -199,7 +219,8 @@ var DseRun = {};
 	}
 
 	function execute_and_report() {
-
+			DseRun.lastResults = undefined;
+			
 			var latency = 0;
 			var hash = sha256sum();
 			//println("HASH:" + hash);
@@ -217,6 +238,7 @@ var DseRun = {};
 			else
 			{
 					var latency_acc = 0;
+					var lastResultsAcc = [];
 					for(var i=0; i<nexecutions; i++) {
 					//deleteFile("info.dat"); 
 
@@ -232,13 +254,25 @@ var DseRun = {};
 						}
 						*/
 
-						
-						var lat = report_fitness(executedProcess);
-						if((lat <= 0) || isNaN(lat)) {	// A single failed execution of any of the (e.g., 30) evaluations is enough to discard phase selection/ordering		// HACK: check if it is not a number (I guess this check should be performed in the 'report_fitness()' function
-							// binaries_generated[hash] = lat;	// NOTA: Ver isto com atencao, pois pode ser importante passar para cima o valor que realmente a funcao report_fitness() gerou
+						var metricsMeasures = report_fitness(executedProcess);
+
+						// A single failed execution of any of the (e.g., 30) evaluations is enough to discard phase selection/ordering
+						if(metricsMeasures === undefined) {
 							binaries_generated[hash] = -1;	// passa sempre -1 em caso de problemas
-							return lat;
+							return -1;
 						}
+						
+						// Currently, only supporting fitness for a single metric
+						var newFitness = metricsMeasures[0].getValue();
+						var lat = parseInt(newFitness, 10);
+						
+						//var lat = report_fitness(executedProcess);
+						//if((lat <= 0) || isNaN(lat)) {
+						// HACK: check if it is not a number (I guess this check should be performed in the 'report_fitness()' function
+							// binaries_generated[hash] = lat;	// NOTA: Ver isto com atencao, pois pode ser importante passar para cima o valor que realmente a funcao report_fitness() gerou
+	
+
+						
 						latency_acc = latency_acc + lat;
 					}
 					latency = Math.floor(latency_acc / nexecutions);
@@ -355,6 +389,9 @@ var DseRun = {};
 			sequencesGenerated[compressedSeq] = fitness;
 			sequencesGeneratedNumTimes[compressedSeq] = 1;
 			totalSteps++;
+			
+			println("Sequence: " + optimLevel);
+			println("Results: " + optimLevel);
 		}
 
 		return fitness;
