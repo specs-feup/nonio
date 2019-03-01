@@ -8,6 +8,8 @@ import DsePlatform;
  */
 var DseMetrics = {};
 
+DseMetrics._instrumentationResults = "instrumentation_results.json";
+
 
 /*** PUBLIC FUNCTIONS ***/
 
@@ -28,6 +30,13 @@ DseMetrics.buildInstrumentationCode = function(path, metrics, sectionProviderNam
 	return this._createDseMetricsInstrument(path, sectionProviderName);
 }
 
+DseMetrics.getInstrumentationResults = function() {
+	if(!Io.isFile(DseMetrics._instrumentationResults)) {
+		throw "Could not find intrumentation results (file '"+DseMetrics._instrumentationResults+"')";
+	}
+	
+	return Io.readJson(DseMetrics._instrumentationResults);
+}
 
 /*** PRIVATE FUNCTIONS ***/
 

@@ -10,6 +10,7 @@ import DseCompiler;
 import DseLanguage;		
 
 import lara.Io;
+//import lara.Compilation;
 import weaver.WeaverLauncher;
 import weaver.WeaverOptions;		
 
@@ -247,6 +248,7 @@ var DseRun = {};
 
 			//var latency_acc = 0;
 			var resultsAcc = undefined;
+
 			for(var i=0; i<nexecutions; i++) {
 			//deleteFile("info.dat"); 
 
@@ -267,7 +269,12 @@ var DseRun = {};
 				// A single failed execution of any of the (e.g., 30) evaluations is enough to discard phase selection/ordering
 				if(metricsMeasures === undefined) {
 					// Return -1 in case of error
-					resultsAcc = [new MetricResult(-1, "undefined")];
+					resultsAcc = [];
+					for(var j=0; j<LaradSetup.metrics.length; j++) {
+						resultsAcc.push(new MetricResult(-1, "undefined"));
+					}
+					//resultsAcc = [new MetricResult(-1, "undefined")];
+					
 					binaries_generated[hash] = resultsAcc;	
 					return resultsAcc;
 					//binaries_generated[hash] = -1;	// passa sempre -1 em caso de problemas
@@ -278,14 +285,14 @@ var DseRun = {};
 				// Initialize acc, if undefined
 				if(resultsAcc === undefined) {
 					resultsAcc = [];
-					for(var i=0; i<metricsMeasures.length; i++) {
-						resultsAcc.push(metricsMeasures[i]);
+					for(var j=0; j<metricsMeasures.length; j++) {
+						resultsAcc.push(metricsMeasures[j]);
 					}
 				} 
 				// Accumulate metrics
 				else {
-					for(var i=0; i<metricsMeasures.length; i++) {
-						resultsAcc[i] = resultsAcc[i].value + metricsMeasures[i].getValue();
+					for(var j=0; j<metricsMeasures.length; j++) {
+						resultsAcc[j].value = parseFloat(resultsAcc[j].getValue()) + parseFloat(metricsMeasures[j].getValue());
 					}				
 				}
 				
@@ -428,14 +435,20 @@ var DseRun = {};
 			fitness = sequencesGenerated[compressedSeq];
 			sequencesGeneratedNumTimes[compressedSeq] = sequencesGeneratedNumTimes[compressedSeq] + 1;
 		}
-		else {	// Only compiles and executes if sequence was not already tested
+		else {	
+
+			// Only compiles and executes if sequence was not already tested
 			compile(optimLevel);
 			//fitness = execute_and_report();
 			
 			var metricsResults = execute_and_report();	
+									
+			//println("Metrics:");
+			//printlnObject(metricsResults);
+			
 			// Compatibility with current system, only consider first metric
 			fitness = Math.round(metricsResults[0].getValue());		
-					
+
 			sequencesGenerated[compressedSeq] = fitness;
 			sequencesGeneratedNumTimes[compressedSeq] = 1;
 			totalSteps++;
@@ -491,6 +504,16 @@ var DseRun = {};
 		
 		var weaverLauncher = new WeaverLauncher(LaradSetup.language);
 		weaverLauncher.execute("-c instrument.datastore");
+		
+
+		var instResults = DseMetrics.getInstrumentationResults();
+		
+		//println("INSTRUMENTATION");
+		//printlnObject(instResults);
+		
+		// Store extra sources and include
+		DseLanguage.addExtraSources(instResults.extraSources);
+		DseLanguage.addExtraIncludes(instResults.extraIncludes);
 		
 		// Delete DataStore
 		Io.deleteFile("instrument.datastore");

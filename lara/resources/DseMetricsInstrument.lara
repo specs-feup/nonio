@@ -1,9 +1,25 @@
 import <SECTION_PROVIDER>;
 import DseMetricsInstrumentAux;
+import lara.Io;
+import lara.Compilation;
 
 aspectdef DseMetricsInstrument
 
 	call codeSection : <SECTION_PROVIDER>();
 	call DseMetricsInstrumentAux(codeSection.$start, codeSection.$end);
+	
+	// Store instrumentation results
+	var results = {};
+	
+	// Since we will be serializing the object, convert files to strings
+	var extraSources = [];
+	for(var extraSource of Compilation.getExtraSourceFiles()) {
+		extraSources.push(extraSource.toString());
+	}
+	
+	results.extraSources = extraSources;
+	results.extraIncludes = Compilation.getExtraIncludes();
+
+	Io.writeJson("instrumentation_results.json", results);
 	
 end

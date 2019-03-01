@@ -128,7 +128,7 @@ DseCompiler.link = function() {
 	}
 	//println("linker: " + linker);
 
-	DseUtils.executeTool(linker + " " + linkParams.linkFlags + " -o " + LlvmUtils.getApplicationExeName() + " function.optim.s main_wtiming.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+	DseUtils.executeTool(linker + " " + linkParams.linkFlags + " -o " + LlvmUtils.getApplicationExeName() + " function.optim.s main_wtiming.s " +  DseLanguage.getExtraSources().join(" ") + " " + DseLanguage.getExtraIncludesFlags().join(" "), DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
 //	var processExecutor = new ProcessExecutor();
 //	processExecutor.setTimeout(LaradSetup.defaultTimelimit)
 //		.execute(LlvmUtils.getClang() + " " + linkParams.linkFlags + " -o " + System.getExecutableName("application") + " function.optim.s main_wtiming.s");

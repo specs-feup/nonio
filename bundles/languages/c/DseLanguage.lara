@@ -133,6 +133,13 @@ DseLanguage._prepareCodeC = function() {
 	DseLanguage._launcherFilesToCompile = [];
 	DseLanguage._kernelFilesToCompile = [];
 	
+	// Add extra sources to kernel files to compile
+/*
+	for(var extraSource of DseLanguage.getExtraSources()) {
+		DseLanguage._kernelFilesToCompile.push(extraSource);
+	}
+	*/
+	
 	var filenameNoExt = Io.removeExtension(LaradSetup.sourceFile);
 	var funcname = Io.removeExtension(Io.getPath(LaradSetup.sourceFile).getName());
 	
@@ -191,6 +198,17 @@ DseLanguage._prepareCodeForCompilationC = function() {
 	
 	Io.copyFile(weavedMain, "main_wtiming.c");
 	DseLanguage._launcherFilesToCompile.push("main_wtiming.c");
+	
+	// Add extra includes
+	for(var extraInclude of DseLanguage.getExtraIncludes()) {
+		DseLanguage._launcherFilesToCompile.push("-I"+extraInclude);
+	}
+	/*
+	// Add extra sources
+	for(var extraSource of DseLanguage.getExtraSources()) {
+		DseLanguage._launcherFilesToCompile.push(extraSource);
+	}
+	*/
 
 	Io.deleteFiles("main_notiming.c", DseLanguage._srcNoTiming, weavedMain);
 }

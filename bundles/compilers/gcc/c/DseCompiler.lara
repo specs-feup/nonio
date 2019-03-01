@@ -127,7 +127,7 @@ DseCompiler.link = function() {
 	
 	debug("Executing DseCompiler.link()");
 	//DseUtils.executeTool(linker + " " + linkFlags + " -o " + GccUtils.getApplicationExeName() + " function.optim.s main_wtiming.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
-	DseUtils.executeTool(linker + " -o " + GccUtils.getApplicationExeName() + " function.optim.s main_wtiming.s " + linkFlags , DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+	DseUtils.executeTool(linker + " -o " + GccUtils.getApplicationExeName() + " function.optim.s main_wtiming.s " + DseLanguage.getExtraSources().join(" ") + " " + DseLanguage.getExtraIncludesFlags().join(" ") + " " +  linkFlags , DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
 
 }
 

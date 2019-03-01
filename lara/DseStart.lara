@@ -6,6 +6,7 @@
 import DseRun;
 import DseAlgo;
 import CleanSequence;
+import LaradSetup;
 
 aspectdef DseStart
 	input
@@ -56,7 +57,7 @@ aspectdef DseStart
 	DseRun.frontend();
 
 	println("\n--------------------- DSE CONFIGURATION ------------------------");
-	println(" target: " + targetName + ", " + "compiler: " + compilerName + ", " + "metrics: " + metricName);
+	println(" target: " + targetName + ", " + "compiler: " + compilerName + ", " + "metrics: " + LaradSetup.metrics.join(", "));
 	println("----------------------------------------------------------------\n");
 	println("Collecting fitness values for default optimization levels..."); // (in " + "CORRECT_THIS" + ")...");
 
@@ -70,6 +71,7 @@ aspectdef DseStart
 	var bestOfAll = DseRun.getWorsePossibleFitness();
 	
 	// Save, print, and determine best fitness of all reference optimization configurations
+
 	for(var i=0; i < referenceConfigsNames.length; i++) {
 		var optimLevel = referenceConfigs[i];
 		var fitnessRef = DseRun.compile_execute_and_report( [ optimLevel ] );
@@ -93,7 +95,7 @@ aspectdef DseStart
 	
 	var startTime = (new Date()).getTime() / 1000.0;   // 'getTime()' gets time in miliseconds, so conversion to seconds is needed
 
-        DseRun.setNexecutions(numExecutions); // so that the exploration phase can rely on fewer executions
+    DseRun.setNexecutions(numExecutions); // so that the exploration phase can rely on fewer executions
 	DseRun.reset();	// it is important to call this because the step counter will be >=1 at this point if there was any compilation before (e.g., using the standard optimization levels), and possibly the counter for the number of binaries saved from testing will also be >=1
 	
 

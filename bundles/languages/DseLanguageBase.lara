@@ -5,10 +5,49 @@ import LaradSetup;
  *
  */
 var DseLanguage = {};
+
+DseLanguage._extraSources = [];
+DseLanguage._extraIncludes = [];
+
 //function DseLanguage() {}
 
 /*** PUBLIC FUNCTIONS ***/
 
+DseLanguage.addExtraSources = function(extraSources) {
+
+	// Add extra sources to kernel files to compile
+	for(var extraSource of extraSources) {
+		DseLanguage._extraSources.push(extraSource);
+	}
+
+}
+
+DseLanguage.addExtraIncludes = function(extraIncludes) {
+
+	// Add extra sources to kernel files to compile
+	for(var extraInclude of extraIncludes) {
+		DseLanguage._extraIncludes.push(extraInclude);
+	}
+
+}
+
+DseLanguage.getExtraSources = function() {
+	return DseLanguage._extraSources;
+}
+
+DseLanguage.getExtraIncludes = function() {
+	return DseLanguage._extraIncludes;
+}
+
+DseLanguage.getExtraIncludesFlags = function() {
+	var includeFlags = [];
+	
+	for(var includeFolder of DseLanguage.getExtraIncludes()) {
+		includeFlags.push("-I" + includeFolder);
+	}
+	
+	return includeFlags;
+}
 
 
 /*** PUBLIC FUNCTIONS THAT SHOULD BE OVERRIDEN ***/

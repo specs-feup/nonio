@@ -111,7 +111,7 @@ DseCompiler.link = function() {
 	}
 	//println("linker: " + linker);
 
-	DseUtils.executeTool(linker + " -std=c++11 -lboost_program_options " + linkParams.linkFlags + " -o " + GccUtils.getApplicationExeName() + " function.optim.s main_wtiming.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+	DseUtils.executeTool(linker + " -std=c++11 -lboost_program_options " + linkParams.linkFlags + " -o " + GccUtils.getApplicationExeName() + " function.optim.s main_wtiming.s " +  DseLanguage.getExtraSources().join(" ") + " " + DseLanguage.getExtraIncludesFlags().join(" "), DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
 
 }
 

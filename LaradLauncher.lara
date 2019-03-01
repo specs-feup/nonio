@@ -78,6 +78,10 @@ aspectdef LaradLauncher
 	// clava ../lara-dse/Larad.lara -av "('../lara-dse', 'gcc', 'C:/msys64/mingw64/bin', 'DSP_autocor_c/DSP_autocor_c.c', 10)" -bt compiler=gcc,algo=sa,language=c,target=host-intel -i "../lara-dse/compilers;../lara-dse/algorithms;../lara-dse/targets;../lara-dse;../lara-dse/includes/scripts;../lara-dse/includes/java" -t ../lara-dse/larai/resources/tools.xml -b 2  -nw
 	
 	var data = Clava.getData(); 
+	
+	// Re-enable weaving, if disabled
+	//data.put("Disable Weaving", false);
+	
 	data.put("aspect", Io.getPath(laradFile));
 	
 	
@@ -171,8 +175,8 @@ aspectdef LaradLauncher
 	}
 
 
-	
-	
+	//println("Clava args: ");
+	//printlnObject(data);
 
 	data.save("_temp.clava");
 	
@@ -200,7 +204,7 @@ aspectdef LaradLauncher
 	
 	//println("CLAVA ARGS:"  + clavaArgs);
 	
-	//println("Running Clava: " + clavaArgs);
+
 	Clava.runClava(clavaArgs);
 end
 
