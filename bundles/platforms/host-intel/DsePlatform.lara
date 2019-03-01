@@ -2,12 +2,12 @@ import DsePlatformBase;
 
 import lara.metrics.ExecutionTimeMetric;
 import lara.metrics.EnergyMetric;
-import dse.metrics.SizeMetric;
+import lara.metrics.FileSizeMetric;
 
 DsePlatform._init = function() {
 	DsePlatform._addMetric("performance", new ExecutionTimeMetric());
 	DsePlatform._addMetric("energy", new EnergyMetric());
-	DsePlatform._addMetric("size", new SizeMetric());
+	DsePlatform._addMetric("size", new FileSizeMetric());
 }
 
 // Work-around, LARA currently does not support calling functions directly

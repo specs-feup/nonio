@@ -19,7 +19,8 @@ SizeMetric.prototype.instrument = function($start, $end) {
 
 // Override
 SizeMetric.prototype.report = function(processExecutor) {
-	println("SizeMetric.report not implemented yet");
+	throw "SizeMetric.report not implemented yet";
+	//println("SizeMetric.report not implemented yet");
 }
 
 // Override

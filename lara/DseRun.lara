@@ -132,9 +132,12 @@ var DseRun = {};
 		*/
 		//println("DseRun.report_fitness: LaradSetup.metrics -> " + LaradSetup.metrics);
 		var metricsMeasures = DsePlatform.extractMetrics(LaradSetup.metrics, executedProcess);
-		//println("METRICS:" + metricsMeasures);
-		//println("DseRun.report_fitness: metricsMeasures:");
-		//printObject(metricsMeasures);
+		
+//		println("METRICS:");
+//		printlnObject(LaradSetup.metrics);
+//		println("Metric results:");
+//		printlnObject(metricsMeasures);
+
 		var newFitness = undefined;
 		if(metricsMeasures === undefined) {
 			DseUtils.log("report_fitness: returning -1 due to metricsMeasures being undefined");
