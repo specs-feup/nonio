@@ -30,6 +30,7 @@ aspectdef LaradLauncher
 		alreadyInstrumented = false,
 		isVerificationSeparated = false,
 		log = undefined,
+		storeResults = false,
 		dummy = ""
 //		compilerFlags = undefined
 	end
@@ -112,6 +113,8 @@ aspectdef LaradLauncher
 	aspectArgs += ", specialLinker: '" + specialLinker + "'";
 
 	aspectArgs += ", target: '" + target + "'";
+	
+	aspectArgs += ", storeResults: '" + storeResults + "'";
 
 	aspectArgs += "}";
 

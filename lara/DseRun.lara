@@ -13,6 +13,7 @@ import lara.Io;
 import weaver.WeaverLauncher;
 import weaver.WeaverOptions;		
 
+import lara.metrics.MetricResult;
 
 /**
  * @class
@@ -47,6 +48,9 @@ var DseRun = {};
 
 	var bundlesPath;
 	var laraPath;
+	
+	// Store results
+	var storedResults;
 
 	DseRun.startup = function(target_name2, metric_name, compilerConfig, compilerName2, nexecutions2, aditionalflags2, larad_path2) {
 		
@@ -78,6 +82,7 @@ var DseRun = {};
 		backend_params = compilerConfig.backend_params;
 		link_params = compilerConfig.link_params;
 
+		storedResults = {metrics: LaradSetup.metrics, results: []};
 	}
 
 
@@ -219,9 +224,9 @@ var DseRun = {};
 	}
 
 	function execute_and_report() {
-			DseRun.lastResults = undefined;
+			//DseRun.lastResults = undefined;
 			
-			var latency = 0;
+			//var latency = 0;
 			var hash = sha256sum();
 			//println("HASH:" + hash);
 
@@ -230,55 +235,95 @@ var DseRun = {};
 			}
 
 			if(hash in binaries_generated) {	// binary has been already evaluated, so new execution is avoided
-					latency = binaries_generated[hash];
+					//latency = binaries_generated[hash];
+					
 					if(hash != 0) {
 						numBinariesSavedFromTesting += 1;
 					}
+					
+					//return latency;
+					return binaries_generated[hash];
 			}
-			else
-			{
-					var latency_acc = 0;
-					var lastResultsAcc = [];
-					for(var i=0; i<nexecutions; i++) {
-					//deleteFile("info.dat"); 
 
-						//if(LaradSetup.isAspectVersion) {
-						
-						var executedProcess = DsePlatform.execute();
-                                                
-						//var executedProcess = Compiler.execute();
-						/*
-						}
-						else {
-							execute_script("execute.sh", []);
-						}
-						*/
+			//var latency_acc = 0;
+			var resultsAcc = undefined;
+			for(var i=0; i<nexecutions; i++) {
+			//deleteFile("info.dat"); 
 
-						var metricsMeasures = report_fitness(executedProcess);
+				//if(LaradSetup.isAspectVersion) {
+				
+				var executedProcess = DsePlatform.execute();
+                                              
+				//var executedProcess = Compiler.execute();
+				/*
+				}
+				else {
+					execute_script("execute.sh", []);
+				}
+				*/
 
-						// A single failed execution of any of the (e.g., 30) evaluations is enough to discard phase selection/ordering
-						if(metricsMeasures === undefined) {
-							binaries_generated[hash] = -1;	// passa sempre -1 em caso de problemas
-							return -1;
-						}
-						
-						// Currently, only supporting fitness for a single metric
-						var newFitness = metricsMeasures[0].getValue();
-						var lat = parseInt(newFitness, 10);
-						
-						//var lat = report_fitness(executedProcess);
-						//if((lat <= 0) || isNaN(lat)) {
-						// HACK: check if it is not a number (I guess this check should be performed in the 'report_fitness()' function
-							// binaries_generated[hash] = lat;	// NOTA: Ver isto com atencao, pois pode ser importante passar para cima o valor que realmente a funcao report_fitness() gerou
+				var metricsMeasures = report_fitness(executedProcess);
+
+				// A single failed execution of any of the (e.g., 30) evaluations is enough to discard phase selection/ordering
+				if(metricsMeasures === undefined) {
+					// Return -1 in case of error
+					resultsAcc = [new MetricResult(-1, "undefined")];
+					binaries_generated[hash] = resultsAcc;	
+					return resultsAcc;
+					//binaries_generated[hash] = -1;	// passa sempre -1 em caso de problemas
+					//return -1;
+					
+				}
+				
+				// Initialize acc, if undefined
+				if(resultsAcc === undefined) {
+					resultsAcc = [];
+					for(var i=0; i<metricsMeasures.length; i++) {
+						resultsAcc.push(metricsMeasures[i]);
+					}
+				} 
+				// Accumulate metrics
+				else {
+					for(var i=0; i<metricsMeasures.length; i++) {
+						resultsAcc[i] = resultsAcc[i].value + metricsMeasures[i].getValue();
+					}				
+				}
+				
+				
+
+
+				
+				// Currently, only supporting fitness for a single metric
+				//var newFitness = metricsMeasures[0].getValue();
+				//var lat = parseInt(newFitness, 10);
+				
+				//var lat = report_fitness(executedProcess);
+				//if((lat <= 0) || isNaN(lat)) {
+				// HACK: check if it is not a number (I guess this check should be performed in the 'report_fitness()' function
+					// binaries_generated[hash] = lat;	// NOTA: Ver isto com atencao, pois pode ser importante passar para cima o valor que realmente a funcao report_fitness() gerou
 	
 
-						
-						latency_acc = latency_acc + lat;
-					}
-					latency = Math.floor(latency_acc / nexecutions);
-					binaries_generated[hash] = latency;
+				
+				//latency_acc = latency_acc + lat;
 			}
-			return latency;
+			
+			// Calculate results average
+			//var results = [];
+			for(var i=0; i<resultsAcc.length; i++) {
+				resultsAcc[i].value = resultsAcc[i].value / nexecutions;
+				//results[i] = resultsAcc[i] / nexecutions;
+			}
+			
+			// Compatibility with current system, only consider first metric
+			//latency = Math.round(results[0]);
+								
+			//latency = Math.floor(latency_acc / nexecutions);
+			//binaries_generated[hash] = latency;
+			binaries_generated[hash] = resultsAcc;
+					
+			//println("RESULTS ACC:" + resultsAcc);
+			//return latency;
+			return resultsAcc;
 
 	}
 
@@ -385,13 +430,44 @@ var DseRun = {};
 		}
 		else {	// Only compiles and executes if sequence was not already tested
 			compile(optimLevel);
-			fitness = execute_and_report();
+			//fitness = execute_and_report();
+			
+			var metricsResults = execute_and_report();	
+			// Compatibility with current system, only consider first metric
+			fitness = Math.round(metricsResults[0].getValue());		
+					
 			sequencesGenerated[compressedSeq] = fitness;
 			sequencesGeneratedNumTimes[compressedSeq] = 1;
 			totalSteps++;
 			
-			println("Sequence: " + optimLevel);
-			println("Results: " + optimLevel);
+			// Build results object for storing
+			//if(LaradSetup.storeResults) {
+			if(LaradSetup.storeResults) {
+				// Each result object contains
+				var resultObject = {errorMessage: undefined, compilerSequence: sequence, values: undefined};
+			
+				// If solution is not valid, store error type
+				var errorMessage = undefined;
+				if(DseRun.isSolutionValid(fitness)) {
+					resultObject.values = [];
+					for(var i=0; i<metricsResults.length; i++) {
+						resultObject.values.push(metricsResults[i].getValue());
+					}
+				} else {
+					resultObject.errorMessage = getProblemMessage(fitness);
+					//errorMessage = getProblemMessage(fitness);				
+				}
+
+				storedResults.results.push(resultObject);
+				
+				//println("Stored results:");
+				//printlnObject(storedResults);
+				Io.writeJson("dse_results.json", storedResults);
+		}
+			
+
+			
+
 		}
 
 		return fitness;

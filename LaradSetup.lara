@@ -25,6 +25,12 @@ LaradSetup.compilerPrefix = "";	// e.g., 'or1k-elf-' for using GCC binary named 
 
 LaradSetup.language = undefined;
 
+// An array of the names of metrics to evaluate
+LaradSetup.metrics = undefined;
+
+// If true, stores the results of the several flag sequences in JSON format
+LaradSetup.storeResults = false;
+
 LaradSetup.getLaradFolder = function() {
 	checkDefined(LaradSetup.laradFolder, "LaradSetup.laradFolder");	
 	return Io.getPath(LaradSetup.laradFolder).getAbsolutePath();

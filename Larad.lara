@@ -31,7 +31,8 @@ aspectdef Larad
 		isVerificationSeparated=false,
 		append="",
 		metrics = ["performance"],
-		language = "c"
+		language = "c",
+		storeResults = false
 	end
 
 	/** CHECKS **/
@@ -78,7 +79,7 @@ aspectdef Larad
 	LaradSetup.isPhaseSelectionOnly = isPhaseSelectionOnly;
 	LaradSetup.specialLinker = specialLinker;
 	LaradSetup.alreadyInstrumented = alreadyInstrumented;
-	
+	LaradSetup.storeResults = storeResults;
 	
 	/** PREPARE FOLDER **/
 
