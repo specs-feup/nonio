@@ -10,6 +10,8 @@ import DsePlatform;
 
 /*** INITIALIZATION ***/
 
+DseCompiler.LOG_FILENAME = "DseCompiler";
+
 DseCompiler._init = function() {
 	DseCompiler._addGeneratedFileCheck("main_wtiming.s",  "ASM for main function not generated");
 	DseCompiler._addGeneratedFileCheck("function.ll",  "IR for function to optimize not generated");
@@ -19,12 +21,13 @@ DseCompiler._init = function() {
 	DseCompiler._addGeneratedFileCheck(LlvmUtils.getApplicationExeName(),  "Binary not generated");
 		
 	// Delete log file
+	println("Deleting file " + DseUtils.getLogFile(DseCompiler.LOG_FILENAME));
 	Io.deleteFile(DseUtils.getLogFile(DseCompiler.LOG_FILENAME));
+	println("Contents of file: " + Io.readFile(DseUtils.getLogFile(DseCompiler.LOG_FILENAME)));
 }
 
 DseCompiler._temp = DseCompiler._init();
 
-DseCompiler.LOG_FILENAME = "DseCompiler";
 
 DseCompiler._getJson =function(path) {
 	return DseCompilerResources.getJson(DsePlatform.getCompilerConfig() + "/" + path);

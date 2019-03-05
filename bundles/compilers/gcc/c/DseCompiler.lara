@@ -10,6 +10,8 @@ import DsePlatform;
 
 /*** INITIALIZATION ***/
 
+DseCompiler.LOG_FILENAME = "DseCompiler";
+
 DseCompiler._init = function() {
 	DseCompiler._addGeneratedFileCheck("main_wtiming.s",  "ASM for main function not generated");
 	DseCompiler._addGeneratedFileCheck("function.optim.s",  "ASM for optimized function IR not generated");
@@ -21,8 +23,6 @@ DseCompiler._init = function() {
 }
 
 DseCompiler._temp = DseCompiler._init();
-
-DseCompiler.LOG_FILENAME = "DseCompiler";
 
 DseCompiler._getJson =function(path) {
 	return DseCompilerResources.getJson(DsePlatform.getCompilerConfig() + "/" + path);
