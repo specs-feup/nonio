@@ -38,6 +38,7 @@ DseUtils.executeTool = function(command, filename, timeout, timeunit) {
 		.setAppend(true)
 		.setTimeout(timeout)
 		.setTimeUnit(timeunit)
+		.setLogErrorsOnly(true)
 		//.setStopOnError(true)
 		.execute(command);
 		
