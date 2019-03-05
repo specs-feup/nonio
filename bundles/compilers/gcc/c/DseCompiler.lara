@@ -41,8 +41,6 @@ DseCompiler._compilationFiles = [];
 DseCompiler.clean = function() {
 	
 	// Delete DseCompiler files
-	
-	//var files = Io.getPaths("./", LaradSetup.getExeName("application"), LaradSetup.getExeName("application_verify"), "function.optim.ll", "function.optim.s", "function.ll", "main_wtiming.ll", "main_wtiming.s", "include.h", "*.dot");
 	var files = Io.getPaths("./", GccUtils.getApplicationExeName(), GccUtils.getVerifyExeName(), "function.optim.s", "main_wtiming.s", "include.h", "*.dot");
 	for(var file of files) {
 		Io.deleteFile(file);

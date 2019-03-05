@@ -27,11 +27,9 @@ LlvmUtils.getLlvmLink = function() {
 
 LlvmUtils.getApplicationExeName = function() {
 	return LaradSetup.getExeName("application.exe");
-	//return System.getExecutableName("application_verify");
 }
 
 LlvmUtils.getVerifyExeName = function() {
 	return LaradSetup.getExeName("application_verify.exe");
-	//return System.getExecutableName("application_verify");
 }
 

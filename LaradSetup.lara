@@ -67,14 +67,19 @@ LaradSetup.getLanguage = function() {
 }
 
 LaradSetup.getExeName = function(baseName) {
+
 	var exeName = baseName;
+	if(!Platforms.isWindows()) {
+		exeName = "./" + exeName;	
+	}
+/*	
 	if(Platforms.isWindows()) {
 		exeName = exeName + ".exe";
 	}
 	else {
 		exeName = "./" + exeName;
 	}
-	
+*/	
 	return exeName;
 }
 

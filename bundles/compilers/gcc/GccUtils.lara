@@ -19,10 +19,8 @@ GccUtils.getGccCPP = function() {
 
 GccUtils.getApplicationExeName = function() {
 	return LaradSetup.getExeName("application.exe");
-	//return System.getExecutableName("application_verify");
 }
 
 GccUtils.getVerifyExeName = function() {
 	return LaradSetup.getExeName("application_verify.exe");
-	//return System.getExecutableName("application_verify");
 }

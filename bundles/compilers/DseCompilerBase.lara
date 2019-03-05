@@ -33,14 +33,6 @@ DseCompiler.checkGeneratedFiles = function() {
 
 	for(var i=0; i < DseCompiler._filesToCheck.length; i++) {
 		if(Io.isFile(DseCompiler._filesToCheck[i]) == false) {
-				
-		// Temporary solution: if file does not exist, 
-		// check if the name as an executable exists
-			/*
-			if(Io.isFile(LaradSetup.getExeName(filesThatShouldExist[i])) === true) {
-				continue;
-			}
-			*/			
 			return DseCompiler._filesToCheckErrors[i];
 		}
 	}
