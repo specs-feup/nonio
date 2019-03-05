@@ -38,9 +38,13 @@ DseUtils.executeTool = function(command, filename, timeout, timeunit) {
 		.setAppend(true)
 		.setTimeout(timeout)
 		.setTimeUnit(timeunit)
+		//.setStopOnError(true)
 		.execute(command);
-	
-	
+		
+	//if(processExecutor.getReturnValue() !== 0) {
+	//	throw "Problem while running command '"+command+"'\nError: " + processExecutor.getConsoleOutput();
+	//}
+		
 	//System.execute(command, undefined, false, logFile, true, timeout);
 	return processExecutor;
 }
