@@ -18,8 +18,9 @@ DseCompiler._init = function() {
 	//DseCompiler._addGeneratedFileCheck(System.getExecutableName("application"),  "Binary not generated");
 	DseCompiler._addGeneratedFileCheck(GccUtils.getApplicationExeName(),  "Binary not generated");
 		
-	// Delete log file
+	// Delete log files
 	Io.deleteFile(DseUtils.getLogFile(DseCompiler.LOG_FILENAME));
+	Io.deleteFile(DseUtils.getLogFile());
 }
 
 DseCompiler._temp = DseCompiler._init();
