@@ -6,11 +6,11 @@ SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
 # Set environment variable with location of Nonio
-export NONIO_HOME=$SCRIPTPATH
+export NONIO_HOME=$SCRIPTPATH/../
 
 #args="laradFoldername:"
 args="dummy:"
-args2=$args\'$SCRIPTPATH\'
+args2=$args\'$NONIO_HOME\'
 
 
 for var in "$@"
@@ -22,8 +22,8 @@ do
 done
 #echo "$args2"
 
-#echo clava $SCRIPTPATH/LaradLauncher.lara --argv=\"{$args2}\" -nw  -b 2 -s
-#clava $SCRIPTPATH/LaradLauncher.lara --argv=\"{$args2}\" -nw  -b 2 -s
+#echo clava $NONIO_HOME/LaradLauncher.lara --argv=\"{$args2}\" -nw  -b 2 -s
+#clava $NONIO_HOME/LaradLauncher.lara --argv=\"{$args2}\" -nw  -b 2 -s
 
-echo clava $SCRIPTPATH/LaradLauncher.lara --argv=$1 -nw  -b 2 -s
-clava $SCRIPTPATH/LaradLauncher.lara --argv=$1 -nw  -b 2 -s
+echo clava $NONIO_HOME/LaradLauncher.lara --argv=$1 -nw  -b 2 -s
+clava $NONIO_HOME/LaradLauncher.lara --argv=$1 -nw  -b 2 -s

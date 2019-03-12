@@ -51,7 +51,7 @@ aspectdef CleanSequence
 
 		for (var pass_num = 0; pass_num < MAX_NUM_PASSES; pass_num += 1) {
 
-			println("Cleaning pass number" + (pass_num + 1) + " ...");
+			println("Cleaning pass number " + (pass_num + 1) + " ...");
 
 			if (DseRun.getBestSolutionConfig().length == 0) {
 				println("   Sequence is empty...");
