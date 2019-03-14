@@ -8,7 +8,7 @@ import DseRun;
 aspectdef DseAlgo
 
         input
-                exploreParams = [], maxIterations, maxWidth, referenceConfigsFitness, sequences, nr;
+                exploreParams = [], maxIterations, maxWidth, referenceConfigsFitness, sequences, nr, algoExtra = {};
         end
 
 

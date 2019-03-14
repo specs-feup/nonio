@@ -14,6 +14,7 @@ aspectdef LaradLauncher
 		language = "c",
 		target = "host-intel",
 		algo = "sa",
+		algoExtra = {},
 		//metric = "performance",
 		compilerFolderName = undefined,
 		compilerPrefix = "",
@@ -77,6 +78,32 @@ aspectdef LaradLauncher
 	// Example of command line that will be built (without the absolute paths):
 	// clava ../lara-dse/Larad.lara -av "('../lara-dse', 'gcc', 'C:/msys64/mingw64/bin', 'DSP_autocor_c/DSP_autocor_c.c', 10)" -bt compiler=gcc,algo=sa,language=c,target=host-intel -i "../lara-dse/compilers;../lara-dse/algorithms;../lara-dse/targets;../lara-dse;../lara-dse/includes/scripts;../lara-dse/includes/java" -t ../lara-dse/larai/resources/tools.xml -b 2  -nw
 	
+//	println("LaradLauncher algoExtra before: ");
+//	printlnObject(algoExtra);
+	// If algoExtra is a string and ends with .json, assume it is a file. 
+	// If so, read the file before stringify
+	algoExtra = Io.jsonObject(algoExtra);
+	/*
+	if(isString(algoExtra) && algoExtra.endsWith(".json")) {
+		algoExtra = Io.readJson(Io.getPath(algoExtra));
+	}
+	*/
+	algoExtra = JSON.stringify(algoExtra);
+	
+//	var algoExtraIsJsonFile = isString(algoExtra) && algoExtra.endsWith(".json");
+//	if(!algoExtraIsJsonFile) {
+//		algoExtra = JSON.stringify(algoExtra);
+		/*
+		// Save object to a file
+		var algoExtraFile = Io.getPath("algoExtra.json");
+		Io.writeJson(algoExtraFile, algoExtra);
+		
+		// Transform argument into a path to the file
+		algoExtra = argPath(algoExtraFile.getAbsolutePath());
+		*/
+//	}
+//	println("LaradLauncher algoExtra after: " + algoExtra);
+	
 	var data = Clava.getData(); 
 	
 	// Re-enable weaving, if disabled
@@ -119,6 +146,8 @@ aspectdef LaradLauncher
 	aspectArgs += ", target: '" + target + "'";
 	
 	aspectArgs += ", storeResults: '" + storeResults + "'";
+	
+	aspectArgs += ", algoExtra: '" + algoExtra + "'";
 
 	aspectArgs += "}";
 
@@ -201,6 +230,7 @@ aspectdef LaradLauncher
 	if(logFile !== undefined) {
 		clavaArgs += " -j";
 	}
+
 	
 	//println("CLAVA ARGS:"  + clavaArgs);
 	

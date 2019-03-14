@@ -19,9 +19,10 @@ aspectdef Larad
 		target="host-intel",
 		metric="performance",
 		algo="sa",
+		algoExtra={},
 		seqlen=32,
 		nexec=1,
-                minimumExecForReporting=30,
+        minimumExecForReporting=30,
 		nr=-1,
 		clean=1,
 		passes="",
@@ -63,6 +64,25 @@ aspectdef Larad
 		}
 	}
 
+	// algoExtra should be an object. If it is a string, assume it is a stringified object
+	
+	
+//	println("Larad algoExtra before: " + algoExtra);
+//	println("Larad algoExtra before type: " + (typeof algoExtra));
+	algoExtra = Io.jsonObject(algoExtra);
+	
+	/*
+	// Unpack algoExtra, if needed
+	var algoExtraIsJsonFile = isString(algoExtra) && algoExtra.endsWith(".json");
+	if(algoExtraIsJsonFile) {
+		// Read file to an object
+		var algoExtraPath = Io.getPath(algoExtra);
+		algoExtra = Io.readJson(algoExtraPath);
+	}
+	*/
+//	println("Larad algoExtra after: ");
+//	printlnObject(algoExtra);
+
 	/** LARADSETUP INFO **/
 
 	LaradSetup.sourceFile = sourceFile;
@@ -80,6 +100,7 @@ aspectdef Larad
 	LaradSetup.specialLinker = specialLinker;
 	LaradSetup.alreadyInstrumented = alreadyInstrumented;
 	LaradSetup.storeResults = storeResults;
+	LaradSetup.algoExtra = algoExtra;
 	
 	/** PREPARE FOLDER **/
 

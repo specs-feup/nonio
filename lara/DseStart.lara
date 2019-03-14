@@ -99,7 +99,7 @@ aspectdef DseStart
 	DseRun.reset();	// it is important to call this because the step counter will be >=1 at this point if there was any compilation before (e.g., using the standard optimization levels), and possibly the counter for the number of binaries saved from testing will also be >=1
 	
 
-	call DseAlgo : DseAlgo(exploreParams, maxIterations, maxSeqWidth, referenceConfigsFitness, sequences, nr);
+	call DseAlgo : DseAlgo(exploreParams, maxIterations, maxSeqWidth, referenceConfigsFitness, sequences, nr, LaradSetup.algoExtra);
 
 	var totalTime = ((new Date()).getTime() / 1000.0) - startTime;
 	var numIterationsProcessed = DseRun.getStepCounter();
