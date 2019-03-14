@@ -64,24 +64,9 @@ aspectdef Larad
 		}
 	}
 
-	// algoExtra should be an object. If it is a string, assume it is a stringified object
-	
-	
-//	println("Larad algoExtra before: " + algoExtra);
-//	println("Larad algoExtra before type: " + (typeof algoExtra));
+	// algoExtra should be an object. If it is a string, assume it is a stringified object, or a path to a JSON file
 	algoExtra = Io.jsonObject(algoExtra);
-	
-	/*
-	// Unpack algoExtra, if needed
-	var algoExtraIsJsonFile = isString(algoExtra) && algoExtra.endsWith(".json");
-	if(algoExtraIsJsonFile) {
-		// Read file to an object
-		var algoExtraPath = Io.getPath(algoExtra);
-		algoExtra = Io.readJson(algoExtraPath);
-	}
-	*/
-//	println("Larad algoExtra after: ");
-//	printlnObject(algoExtra);
+
 
 	/** LARADSETUP INFO **/
 

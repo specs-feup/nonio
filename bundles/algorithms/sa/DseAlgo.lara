@@ -10,10 +10,6 @@ aspectdef DseAlgo
         input
                 exploreParams = [], maxIterations, maxWidth, referenceConfigsFitness, sequences, nr, algoExtra = {};
         end
-
-		
-		//println("SA Algo extra:");
-		//printlnObject(algoExtra);
 		
        	var MAX_ALREADY_TESTED  = 100;	// Limits the number of times previously generated sequences can be generated again before DSE termination
 
