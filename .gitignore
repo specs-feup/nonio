@@ -1,0 +1,39 @@
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+
+# Eclipse-related files #
+#########################
+.metadata/
+bin/
+RemoteSystemsTempFiles/
+.recommenders/
+
+# Custom ignores #
+##################
+
+output/
+.idea/
+
+
+### Default folder for executing applications
+**/run/**
+#!**/run/dummy.txt
+!**/run/*.launch
+**/run/*-local.launch
+
+
+### Cache for ivy 
+ivy/
+
+
+### ignore media formats
+*.mp4
+*.wmv
