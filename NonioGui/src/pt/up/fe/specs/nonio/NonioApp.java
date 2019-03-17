@@ -165,7 +165,7 @@ public class NonioApp extends ADataClass<NonioApp> implements App, AppKernel {
                 + ",platform=" + options.get(PLATFORM).getKey();
 
         clavaData.put(LaraiKeys.BUNDLE_TAGS, bundles);
-        System.out.println("CLAVA DATA:" + clavaData);
+        // System.out.println("CLAVA DATA:" + clavaData);
         boolean success = LaraI.exec(clavaData, new CxxWeaver());
 
         return success ? 0 : 1;
