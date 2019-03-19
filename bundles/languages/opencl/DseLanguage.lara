@@ -220,6 +220,9 @@ DseLanguage._prepareCodeForCompilationC = function() {
 	Io.deleteFiles("main_notiming.c", DseLanguage._srcNoTiming, weavedMain);
 
 
+
+		// Já está na função 'DseLanguage._prepareCodeC()'
+/*
         // Copy main verify, if present (is this necessary now?)
         var verifySrc = filenameNoExt + "_verify.c";
         if(Io.isFile(verifySrc)) {
@@ -231,6 +234,8 @@ DseLanguage._prepareCodeForCompilationC = function() {
 
 	Io.copyFile(LaradSetup.sourceFile, "function.cl");
         DseLanguage._kernelFilesToCompile.push("function.cl");
+*/
+
 
 }
 
