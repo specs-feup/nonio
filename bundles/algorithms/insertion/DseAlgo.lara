@@ -1,0 +1,74 @@
+/*      Ricardo Nobre                                   *
+ *      Departamento de Engenharia Informática          *
+ *      FEUP, Porto, Portugal                           * 
+ *      ricardo.nobre@fe.up.pt                          */
+
+import DseRun;
+
+aspectdef DseAlgo
+
+        input
+                exploreParams = [], maxIterations, maxWidth, referenceConfigsFitness, sequences, nr;
+        end
+
+
+    var changed = true;
+
+    // outerloop:
+    while(changed == true) {
+        changed = false;
+
+        for(i=0; i < exploreParams.length; i++) {
+            // println("considering: " + exploreParams[i]);
+            var candidateSolution = {};
+            candidateSolution.config = DseRun.getBestSolutionConfig().slice(0);
+            candidateSolution.fitness = DseRun.getBestSolutionFitness();
+
+
+            for(j=0; j < (DseRun.getBestSolutionConfig().length + 1); j++) {
+
+                if((DseRun.getStepCounter() >= maxIterations)  || (DseRun.getBestSolutionConfig().length >= maxWidth)) {    // Exits if iterations limit is reached or if sequence of maximum length is reached
+
+                    DseRun.updateBestSolution(candidateSolution.config.slice(0), candidateSolution.fitness);
+                    return;
+                    //break outerloop;
+                }
+                
+                // println("considering position: " + j);
+
+                var newPass = exploreParams[i];
+
+                var newConfig = DseRun.getBestSolutionConfig().slice(0,j);
+                newConfig.push(newPass);
+                newConfig = newConfig.concat(DseRun.getBestSolutionConfig().slice(j)) ;
+
+                newFitness = DseRun.compile_execute_and_report(newConfig);
+
+
+                if(DseRun.isSolutionValid(newFitness) == false) {
+                        DseRun.printIterationInfo(newConfig, newFitness, null); // no message because the function will detect that the sequence is problematic and will print a predefined message (depending on the problem caused by the sequence)
+                        continue;
+                }
+
+
+                if(DseRun.isLeftFitnessBetterThanRightFitness(newFitness, candidateSolution.fitness)) { // only saves if better, not better or equal    // TODO: consider a percentage (this would be an input of this specific algorithm, or is could even be used in all algorithms)
+                    candidateSolution.fitness = newFitness;
+                    candidateSolution.config = newConfig;      // TODO: maybe needed to do slice(0)
+                    changed = true;                        
+                    DseRun.printIterationInfo(newConfig, newFitness, "O") ;
+                }
+                else {
+                    DseRun.printIterationInfo(newConfig, newFitness, "X") ;
+                }
+            }
+
+
+            DseRun.updateBestSolution(candidateSolution.config.slice(0), candidateSolution.fitness);
+
+        }
+
+    }
+
+
+end
+

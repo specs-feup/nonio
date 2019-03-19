@@ -1,0 +1,7 @@
+{
+	"compiler" : {
+		"llvm" : {
+			"passes":"passes_v500_amdfiji.json"
+		}
+	}
+}

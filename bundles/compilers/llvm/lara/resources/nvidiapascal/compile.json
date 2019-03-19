@@ -1,0 +1,4 @@
+{
+	"compileFlags" : "-I /usr/local/cuda/include -L /usr/local/cuda/lib64"	
+}
+

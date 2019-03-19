@@ -1,0 +1,58 @@
+import DsePlatformBase;
+
+import lara.metrics.ExecutionTimeMetric;
+import lara.metrics.EnergyMetric;
+import dse.metrics.SizeMetric;
+import lara.System;
+import lara.Strings;
+
+DsePlatform._init = function() {
+        DsePlatform._addMetric("performance", new ExecutionTimeMetric());
+}
+
+// Work-around, LARA currently does not support calling functions directly
+DsePlatform._temp = DsePlatform._init();
+
+
+DsePlatform.execute = function() {
+
+        var application = new ProcessExecutor();
+        application.setTimeout(LaradSetup.defaultTimelimit)
+                .setPrintToConsole(false);
+
+        application.execute(System.getExecutableFile(DseCompiler.getTestExecutable()));
+
+        //println("system:" + System.getExecutableFile(DseCompiler.getTestExecutable()));
+
+        if(LaradSetup.isVerificationSeparated === true) {
+                var verification = new ProcessExecutor();
+                verification.setTimeout(LaradSetup.defaultTimelimit)
+                        .setPrintToConsole(false);
+
+                // Execute verification in another ProcessExecutor
+                verification.execute(System.getExecutableFile(DseCompiler.getVerificationExecutable()));
+
+                // Save result of verification ProcessExecutor
+                application.setCustomReturnValue(verification.getReturnValue());
+                //println("verification_return: " + verification.getReturnValue());
+        }
+
+        //println("Application name:" + DseCompiler.getTestExecutable());
+        //println("Output: " + application.getConsoleOutput());
+        //println("Return value:" + application.getReturnValue());
+
+        // Checks if there is an error (e.g., problem launching kernel)
+        if(Strings.extractValue("Error", application.getConsoleOutput()) !== undefined) {
+                // println("Error with kernel");
+                application.setCustomReturnValue(-1);
+        }
+
+        return application;
+}
+
+
+// is this function needed?
+DsePlatform.getCompilerConfig = function() {
+        return "amdfiji";
+}
+
