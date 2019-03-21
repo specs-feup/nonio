@@ -475,6 +475,8 @@ var DseRun = {};
 				
 				//println("Stored results:");
 				//printlnObject(storedResults);
+				//var resultsFilename = Io.removeExtension(LaradSetup.sourceFile) + "_results.json";
+				//Io.writeJson(resultsFilename, storedResults);
 				Io.writeJson("dse_results.json", storedResults);
 		}
 			
