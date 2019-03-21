@@ -51,6 +51,7 @@ DsePlatform.execute = function() {
 	                // Execute verification in another ProcessExecutor
 			verification.execute(executionCommand + DseCompiler.getVerificationExecutable().getAbsolutePath());
 	                System.execute("pkill -f Vorpsoc_top");
+
 	        }
 		else { 
 		// TODO: trow exception because this functions in only supposed to be called if the executable exists (in case verification is separated)
@@ -94,6 +95,7 @@ DsePlatform._getReturnValue = function(executedProcess, executionCommand) {
         // println(executionCommand + DseCompiler.getVerificationExecutable().getAbsolutePath());
 
 	System.execute("pkill -f Vorpsoc_top");
+
 	
 	if(verification.getConsoleOutput() === undefined) {
 		debug("DsePlatform._getReturnValue: executed verification application has undefined console output");	

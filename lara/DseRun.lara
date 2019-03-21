@@ -530,8 +530,8 @@ var DseRun = {};
 	}
 
 	DseRun.cleanAll = function() {
-	//	DseLanguage.clean();
-	//	DseCompiler.clean();
+	//	DseLanguage.clean();	// should this be uncomented?
+		DseCompiler.clean();
 	}
 
 	DseRun.getNumSavedExecutions = function() {
