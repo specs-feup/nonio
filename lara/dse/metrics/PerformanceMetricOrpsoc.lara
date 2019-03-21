@@ -4,7 +4,7 @@ import dse.metrics.PerformanceMetricOrpsocAspects;
 import lara.Strings;
 
 /**
- * Measures code size of an application.
+ * Measures performance an OpenRISC application.
  * @constructor
  */
 function PerformanceMetricOrpsoc() {

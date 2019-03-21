@@ -98,13 +98,18 @@ DseCompiler.frontend = function() {
 
 DseCompiler.opt = function(optFlags) {
 
-	Io.deleteFiles("function.optim.s", "*.dot");
+	Io.deleteFiles("function.optim.s", "function.optim.o", "*.dot");
 
 	var optParams = DseCompiler._getJson("opt.json");
 
 	// optFlags must be allways after optParams.gcc flags 	
 	debug("Executing DseCompiler.opt()");
 	var execution = DseUtils.executeTool(GccUtils.getGcc() + " " + optParams.gccFlags + " " + optFlags + " function.c -S -o function.optim.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+
+        // for size metric
+        DseUtils.executeTool(GccUtils.getAs() + " function.optim.s -o function.optim.o", DseCompiler.LOG_FILENAME);
+
+
 }
 
 DseCompiler.backend = function() {
