@@ -12,7 +12,7 @@ LaradSetup.isAspectVersion = false;
  * Set to true in case validation is performed on a separated main (e.g., '_verify.c'). TODO: think of what is the best for a user.
  */
 LaradSetup.isVerificationSeparated = false;
-LaradSetup.defaultTimelimit = 10;	// 10 seconds
+LaradSetup.defaultTimelimit = 30;	// 30 seconds	// had to increase from 10 because of initial setup overhead for fusesoc
 LaradSetup.defaultTimeUnit = "SECONDS";	
 LaradSetup.isPhaseSelectionOnly = false;
 

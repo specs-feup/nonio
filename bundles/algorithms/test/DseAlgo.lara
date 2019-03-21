@@ -1,0 +1,71 @@
+/*      Ricardo Nobre                                   *
+ *      Departamento de Engenharia Informática          *
+ *      FEUP, Porto, Portugal                           * 
+ *      ricardo.nobre@fe.up.pt                          */
+
+import DseRun;
+
+aspectdef DseAlgo
+
+        input
+                exploreParams = [], maxIterations, maxWidth, referenceConfigsFitness, sequences, nr, algoExtra = {};
+        end
+
+
+    sequences = [
+	];
+
+
+
+
+                var newConfig = [
+				 "-external-aa",
+                                "-slp-vectorizer",
+                                "-consthoist",
+                                "-tailcallelim",
+                                "-divergence",
+                                "-scalarizer",
+                                "-dot-regions-only",
+                                "-loop-idiom",
+                                "-polly-prepare",
+                                "-loop-extract",
+                                "-strip-nondebug",
+                                "-profile-summary-info",
+                                "-divergence",
+                                "-loop-reroll",
+                                "-demanded-bits",
+                                "-mergefunc",
+                                "-lazy-block-freq",
+                                "-libcalls-shrinkwrap",
+                                "-loop-unroll",
+                                "-asan",
+                                "-sccp",
+                                "-alignment-from-assumptions",
+                                "-amdgpu-codegenprepare",
+                                "-polyhedral-info",
+                                "-dot-postdom-only",
+                                "-cfl-anders-aa",
+                                "-loop-reroll",
+                                "-polly-codegen",
+                                "-pgo-memop-opt",
+                                "-print-module",
+                                "-tti",
+                                "-dot-dom-only"
+			];
+
+		var newLatency = DseRun.compile_execute_and_report(newConfig);
+
+                if(DseRun.isSolutionValid(newLatency) == false) {
+                        DseRun.printIterationInfo(newConfig, newLatency, null); // no message because the function will detect that the sequence is problematic and will print a predefined message (depending on the problem caused by the sequence)
+                        return;
+                }
+		
+	
+                if(DseRun.isLeftFitnessBetterOrEqualThanRightFitness(newLatency, DseRun.getBestSolutionFitness())) {
+                        DseRun.updateBestSolution(newConfig, newLatency);
+                        DseRun.printIterationInfo(newConfig, newLatency, "O") ;
+                }
+                else {
+                        DseRun.printIterationInfo(newConfig, newLatency, "X") ;
+                }
+end

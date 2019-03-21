@@ -1,7 +1,7 @@
 {
 	"compiler" : {
 		"llvm" : {
-			"passes":"passes_v500_amdvega.json"
+			"passes":"passes_v800_amdvega.json"
 		}
 	}
 }

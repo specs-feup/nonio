@@ -1,12 +1,12 @@
 import DsePlatformBase;
 import dse.metrics.PerformanceMetricOrpsoc;
-//import lara.metrics.FileSizeMetric;
+import lara.metrics.FileSizeMetric;
 import lara.Io;
 import lara.System;
 
 DsePlatform._init = function() {
 	DsePlatform._addMetric("performance", new PerformanceMetricOrpsoc());
-	//DsePlatform._addMetric("size", new FileSizeMetric());
+	DsePlatform._addMetric("size", new FileSizeMetric());
 }
 
 // Work-around, LARA currently does not support calling functions directly
@@ -28,6 +28,7 @@ DsePlatform.execute = function() {
 	}
 
 	application.execute(executionCommand + DseCompiler.getTestExecutable().getAbsolutePath());
+
 	System.execute("pkill -f Vorpsoc_top");
 	
 	var returnValue = DsePlatform._getReturnValue(application, executionCommand);
@@ -61,7 +62,7 @@ DsePlatform.execute = function() {
 	}
 */
         application.setCustomReturnValue(returnValue);
-//	println("return_value: " + returnValue);
+	//println("return_value: " + returnValue);
 	return application;
 }
 
@@ -74,9 +75,9 @@ DsePlatform._getReturnValue = function(executedProcess, executionCommand) {
 		}
 	
 		var returnValue = Strings.extractValue("return: ", executedProcess.getConsoleOutput());
+		// println("DsePlatform._getReturnValue [verification not separated]: " + returnValue);
 		return returnValue;
 	}
-
 
 	// Separate verification
 	var verification = new ProcessExecutor();
@@ -89,14 +90,18 @@ DsePlatform._getReturnValue = function(executedProcess, executionCommand) {
 	
 	// Execute verification in another ProcessExecutor
 	verification.execute(executionCommand + DseCompiler.getVerificationExecutable().getAbsolutePath());
+        // println(executionCommand + DseCompiler.getVerificationExecutable().getAbsolutePath());
+
 	System.execute("pkill -f Vorpsoc_top");
 	
 	if(verification.getConsoleOutput() === undefined) {
 		debug("DsePlatform._getReturnValue: executed verification application has undefined console output");	
 		return -1;
      }
+
+	println(verification.getConsoleOutput());	// FOR TESTING!! REMOVE!!
 	
-	
+	//println("DsePlatform._getReturnValue [verification separated]: " + Strings.extractValue("return: ", verification.getConsoleOutput()));
 	return Strings.extractValue("return: ", verification.getConsoleOutput());
 }
 
