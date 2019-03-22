@@ -1,7 +1,7 @@
 import lara.metrics.Metric;
 import lara.Io;
 import dse.DseUtils;
-import GccUtils;
+//import GccUtils;
 
 /**
  * Measures code size of an application.

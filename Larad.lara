@@ -14,6 +14,7 @@ aspectdef Larad
 		compilerFolderName,
 		compilerPrefix,
 		specialLinker = undefined,
+                specialAssembler = undefined,
 		sourceFile,
 		nsteps=1000,
 		target="host-intel",
@@ -24,9 +25,9 @@ aspectdef Larad
 		nexec=1,
         minimumExecForReporting=30,
 		nr=-1,
-		clean=1,
+		clean=1,	// estava 1
 		passes="",
-		percent=2,
+		percent=0,	// estava 2
 		alreadyInstrumented=false,
 		isPhaseSelectionOnly=false,
 		isVerificationSeparated=false,
@@ -83,6 +84,7 @@ aspectdef Larad
 	LaradSetup.isVerificationSeparated = isVerificationSeparated;
 	LaradSetup.isPhaseSelectionOnly = isPhaseSelectionOnly;
 	LaradSetup.specialLinker = specialLinker;
+        LaradSetup.specialAssembler = specialAssembler;
 	LaradSetup.alreadyInstrumented = alreadyInstrumented;
 	LaradSetup.storeResults = storeResults;
 	LaradSetup.algoExtra = algoExtra;

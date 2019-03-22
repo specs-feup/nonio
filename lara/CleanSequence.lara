@@ -40,9 +40,11 @@ aspectdef CleanSequence
 
 	}
 
+	// print("percent: " + cleaning_percent);
+
         var bestConfigFitnessFullConfig = DseRun.getBestSolutionFitness();
 
-	var MAX_NUM_PASSES = 10;
+	var MAX_NUM_PASSES = 1;	// was 10 before
 
 	if(clean == 1) {	// Sequential clean (from left to right)
 

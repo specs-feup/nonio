@@ -25,6 +25,20 @@ LlvmUtils.getLlvmLink = function() {
         return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llvm-link", compilerFolder, true);
 }
 
+
+LlvmUtils.getAs = function() {
+        var compilerFolder = LaradSetup.getCompilerFolder();
+        return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llvm-as", compilerFolder, true);
+}
+
+LlvmUtils.getSize = function() {
+        var compilerFolder = LaradSetup.getCompilerFolder();
+        return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "llvm-size", compilerFolder, true);
+}
+
+
+
+
 LlvmUtils.getApplicationExeName = function() {
 	return LaradSetup.getExeName("application.exe");
 }
