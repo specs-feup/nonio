@@ -37,3 +37,7 @@ ivy/
 ### ignore media formats
 *.mp4
 *.wmv
+
+
+# ignore temporary files in examples folder
+**/examples/*
