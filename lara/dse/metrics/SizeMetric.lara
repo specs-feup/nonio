@@ -27,3 +27,7 @@ SizeMetric.prototype.report = function(processExecutor) {
 SizeMetric.prototype.getImport = function() {
 		return "dse.metrics.SizeMetric";
 }
+
+SizeMetric.prototype.getUnit = function() {
+	throw "SizeMetric.getUnit not implemented yet";
+}

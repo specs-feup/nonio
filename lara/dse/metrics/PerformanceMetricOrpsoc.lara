@@ -39,10 +39,14 @@ PerformanceMetricOrpsoc.prototype.instrument = function($start, $end) {
 // Override
 PerformanceMetricOrpsoc.prototype.report = function(processExecutor) {
 	var value = Strings.extractValue("CPU cycles: ", processExecutor.getConsoleOutput());
-	return new MetricResult(value, "cycles");
+	return new MetricResult(value, this.getUnit());
 }
 
 // Override
 PerformanceMetricOrpsoc.prototype.getImport = function() {
 		return "dse.metrics.PerformanceMetricOrpsoc";
+}
+
+PerformanceMetricOrpsoc.prototype.getUnit = function() {
+		return "cycles";
 }
