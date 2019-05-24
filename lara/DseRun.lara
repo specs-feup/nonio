@@ -83,7 +83,15 @@ var DseRun = {};
 		backend_params = compilerConfig.backend_params;
 		link_params = compilerConfig.link_params;
 
-		storedResults = {metrics: LaradSetup.metrics, results: []};
+
+		// Store metrics units
+		var metricsUnits = [];
+		for(var metricName of LaradSetup.metrics) {
+			var metric = DsePlatform.metrics.metrics[metricName];
+			metricsUnits.push(metric.getUnit());
+		}	
+
+		storedResults = {metrics: LaradSetup.metrics, units: metricsUnits, results: []};
 	}
 
 
@@ -472,6 +480,8 @@ var DseRun = {};
 				}
 
 				storedResults.results.push(resultObject);
+
+
 				
 				//println("Stored results:");
 				//printlnObject(storedResults);
