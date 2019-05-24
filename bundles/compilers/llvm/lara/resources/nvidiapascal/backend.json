@@ -1,0 +1,4 @@
+{
+	"linkFlags" : "/opt/libclc/lib/clc/nvptx64--nvidiacl.bc",
+	"clangFlags" : "-O3 -target nvptx64-nvidia-nvcl -march=sm_61 -S"
+}

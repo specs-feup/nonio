@@ -40,9 +40,9 @@ DseCompiler._compilationFiles = [];
 /*** PUBLIC FUNCTIONS OVERRIDE ***/
 
 DseCompiler.clean = function() {
-	
+
 	// Delete DseCompiler files
-	var files = Io.getPaths("./", GccUtils.getApplicationExeName(), GccUtils.getVerifyExeName(), "function.optim.s", "main_wtiming.s", "include.h", "*.dot");
+	var files = Io.getPaths("./", GccUtils.getApplicationExeName(), GccUtils.getVerifyExeName(), "function.optim.s", "main_wtiming.s", "include.h", "*.dot", "funtion.optim.o");
 	for(var file of files) {
 		Io.deleteFile(file);
 	}
@@ -50,7 +50,7 @@ DseCompiler.clean = function() {
 }
 
 DseCompiler.compileLauncher = function() {
-	Io.deleteFiles("main_wtiming.s");
+	Io.deleteFiles("main_wtiming.s", GccUtils.getVerifyExeName());	// this does not need to be removed if removed before by calling 'DseCompiler.clean()'
 	
 	//var compileParams = DseCompiler._getJson("compile.json");
 	var compileParams = DseCompiler._getJson("compile.json");
@@ -98,13 +98,20 @@ DseCompiler.frontend = function() {
 
 DseCompiler.opt = function(optFlags) {
 
-	Io.deleteFiles("function.optim.s", "*.dot");
+        System.execute("pkill -f cc1"); // avoid acumulation of "cc1" processes
+
+	Io.deleteFiles("function.optim.s", "function.optim.o", "*.dot");
 
 	var optParams = DseCompiler._getJson("opt.json");
 
 	// optFlags must be allways after optParams.gcc flags 	
 	debug("Executing DseCompiler.opt()");
 	var execution = DseUtils.executeTool(GccUtils.getGcc() + " " + optParams.gccFlags + " " + optFlags + " function.c -S -o function.optim.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+
+        // for size metric
+        DseUtils.executeTool(GccUtils.getAs() + " function.optim.s -o function.optim.o", DseCompiler.LOG_FILENAME);
+
+
 }
 
 DseCompiler.backend = function() {
@@ -113,6 +120,9 @@ DseCompiler.backend = function() {
 }
 
 DseCompiler.link = function() {
+
+
+	Io.deleteFiles(GccUtils.getApplicationExeName());
 
 	var linkParams = DseCompiler._getJson("link.json");
 	var linkFlags = linkParams.linkFlags !== undefined ? linkParams.linkFlags : "";
@@ -126,6 +136,7 @@ DseCompiler.link = function() {
 	
 	debug("Executing DseCompiler.link()");
 	//DseUtils.executeTool(linker + " " + linkFlags + " -o " + GccUtils.getApplicationExeName() + " function.optim.s main_wtiming.s", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+
 	DseUtils.executeTool(linker + " -o " + GccUtils.getApplicationExeName() + " function.optim.s main_wtiming.s " + DseLanguage.getExtraSources().join(" ") + " " + DseLanguage.getExtraIncludesFlags().join(" ") + " " +  linkFlags , DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
 
 }

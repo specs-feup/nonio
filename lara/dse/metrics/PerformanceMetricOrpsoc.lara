@@ -4,12 +4,12 @@ import dse.metrics.PerformanceMetricOrpsocAspects;
 import lara.Strings;
 
 /**
- * Measures code size of an application.
+ * Measures performance an OpenRISC application.
  * @constructor
  */
 function PerformanceMetricOrpsoc() {
     // Parent constructor
-    Metric.call(this);
+    Metric.call(this, "Performance");
 }
 // Inheritance
 PerformanceMetricOrpsoc.prototype = Object.create(Metric.prototype);
@@ -19,22 +19,7 @@ PerformanceMetricOrpsoc.prototype = Object.create(Metric.prototype);
 PerformanceMetricOrpsoc.prototype.instrument = function($start, $end) {
 
 	call OrpsocInstrument();
-/*
-	select pragma end
-	apply
-		if($pragma.name !== "monitor") {
-			continue;
 		}
-
-
-		if($pragma.content === "start") {
-			$pragma.insert replace %{asm("l.nop 5");}%;
-		} else {
-			$pragma.insert replace %{asm("l.nop 6");}%
-		}
-	end
-*/
-}
 
 // Override
 PerformanceMetricOrpsoc.prototype.report = function(processExecutor) {

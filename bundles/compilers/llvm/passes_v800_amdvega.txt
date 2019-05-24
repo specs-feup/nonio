@@ -1,0 +1,3 @@
+todos os passos excepto:
+começam em 'print', 'view' or 'dot'.
+passos que causam problemas ao compilar/executar o benchmark syrk.cl do Polybench/GPU

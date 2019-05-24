@@ -1,0 +1,8 @@
+{
+        "compiler" : {
+                "llvm" : {
+                        "passes":"passes_v500_nvidiapascal.json"
+                }
+        }
+}
+

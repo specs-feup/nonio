@@ -1,0 +1,4 @@
+{
+	"linkFlags" : "/opt/libclc/lib/clc/amdgcn--amdhsa.bc",
+	"clangFlags" : "-O3 -target amdgcn--amdhsa -mcpu=gfx900"
+}

@@ -1,4 +1,7 @@
 import lara.metrics.Metric;
+import lara.Io;
+import dse.DseUtils;
+//import GccUtils;
 
 /**
  * Measures code size of an application.
@@ -19,8 +22,31 @@ SizeMetric.prototype.instrument = function($start, $end) {
 
 // Override
 SizeMetric.prototype.report = function(processExecutor) {
-	throw "SizeMetric.report not implemented yet";
+
+        //DseUtils.executeTool(GccUtils.getAs() + " " + function.optim.s + " -o function.optim.o", DseCompiler.LOG_FILENAME);
+        //DseUtils.executeTool(GccUtils.getSize() + " " + function.optim.o, DseCompiler.LOG_FILENAME);
+	var output2 = System.execute("size function.optim.o", undefined, false);
+	//println("PATH " + Io.getPath(processExecutor.getWorkingDir).getAbsolutePath());
+	//throw "SizeMetric.report not implemented yet";
 	//println("SizeMetric.report not implemented yet");
+
+	var stringArray = output2.split(/(\s+)/);
+	//println("hello: " + stringArray);
+	//println("hello: " + output2);
+
+/*
+        println("test: " + stringArray[13]);
+        println("test: " + stringArray[14]);
+	println("test: " + stringArray[15]);
+        println("test: " + stringArray[16]);
+        println("test: " + stringArray[17]);
+        println("test: " + stringArray[18]);
+        println("test: " + stringArray[19]);
+        println("test: " + stringArray[20]);
+*/
+
+        return new MetricResult(stringArray[20], "bytes");
+
 }
 
 // Override

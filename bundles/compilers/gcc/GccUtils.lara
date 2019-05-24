@@ -16,6 +16,17 @@ GccUtils.getGccCPP = function() {
         return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "g++", compilerFolder, true);
 }
 
+GccUtils.getAs = function() {
+        var compilerFolder = LaradSetup.getCompilerFolder();
+        return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "as", compilerFolder, true);
+}
+
+GccUtils.getSize = function() {
+        var compilerFolder = LaradSetup.getCompilerFolder();
+        return System.getExecutableFile(LaradSetup.getCompilerPrefix() + "size", compilerFolder, true);
+}
+
+
 
 GccUtils.getApplicationExeName = function() {
 	return LaradSetup.getExeName("application.exe");

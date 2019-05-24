@@ -19,13 +19,14 @@ aspectdef LaradLauncher
 		compilerFolderName = undefined,
 		compilerPrefix = "",
 		specialLinker = undefined,	
+		specialAssembler = undefined,
 		seqlen = 32,
 		nexec = 1,
 		minimumExecForReporting = 30,	// used for the reference fitness and for the final reported value for the phase ordering
 		nr = -1,
 		clean = 1,
 		passes = "",
-		percent = 2,
+		percent = 0,	// estava 2
 		append = "",
 		metrics = ["performance"],
 		alreadyInstrumented = false,
@@ -118,9 +119,20 @@ aspectdef LaradLauncher
 
 	aspectArgs += ", nexec: " + nexec;
 
+        aspectArgs += ", clean: " + clean;
+
+        aspectArgs += ", passes: '" + passes + "'";
+
+        aspectArgs += ", percent: " + percent;
+
+        aspectArgs += ", nexec: " + nexec;
+
+
 	aspectArgs += ", minimumExecForReporting: " + minimumExecForReporting;
 
 	aspectArgs += ", specialLinker: '" + specialLinker + "'";
+
+        aspectArgs += ", specialAssembler: '" + specialAssembler + "'";
 
 	aspectArgs += ", target: '" + target + "'";
 	

@@ -13,7 +13,7 @@ Energy consumption is supported as an optimization metric when compiling to Inte
 
 ## Setup Nonio
 
-Nonio requires a Java virtual machine (version 8 or greater), and the [Clava](https://github.com/specs-feup/clava/) C/C++ source-to-source compiler.
+Nonio requires a Java virtual machine (version 10 or greater), and the [Clava](https://github.com/specs-feup/clava/) C/C++ source-to-source compiler.
 
 Clone this repository (`clone https://github.com/specs-feup/nonio`) to where you want Nonio to be installed.
 Add `export PATH=~/PATHTONONIO/bin:$PATH` to your `.bashrc` file. Open a new shell session, or reload the shell settings (`source .bashrc`).

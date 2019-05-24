@@ -1,0 +1,4 @@
+{
+	"linkFlags" : "/opt/libclc/lib/clc/fiji-amdgcn--amdhsa.bc",
+	"clangFlags" : "-O3 -target amdgcn--amdhsa -mcpu=fiji"
+}

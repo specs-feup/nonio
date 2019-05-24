@@ -45,7 +45,7 @@ DseCompiler._compilationFiles = [];
 DseCompiler.clean = function() {
 	
 	// Delete DseCompiler files
-	var files = Io.getPaths("./", LlvmUtils.getApplicationExeName(), LlvmUtils.getVerifyExeName(), "function.optim.ll", "function.optim.s", "function.ll", "main_wtiming.ll", "main_wtiming.s", "include.h", "*.dot");
+	var files = Io.getPaths("./", LlvmUtils.getApplicationExeName(), LlvmUtils.getVerifyExeName(), "function.optim.ll", "function.optim.s", "function.ll", "main_wtiming.ll", "main_wtiming.s", "include.h", "*.dot", "function.optim.o");
 	for(var file of files) {
 		Io.deleteFile(file);
 	}
@@ -105,11 +105,12 @@ DseCompiler.opt = function(optFlags) {
 	//var processExecutor = new ProcessExecutor();
 	//processExecutor.setTimeout(LaradSetup.defaultTimelimit)
 	//	.execute(LlvmUtils.getOpt() + " " + optFlags + " " + optParams.optFlags + " function.ll -S -o function.optim.ll");
+
 }
 
 DseCompiler.backend = function() {
 
-	Io.deleteFiles("function.optim.s", LlvmUtils.getApplicationExeName());
+	Io.deleteFiles("function.optim.s", LlvmUtils.getApplicationExeName(), "function.optim.o");
 
 	var backendParams = DseCompiler._getJson("backend.json");
 
@@ -117,6 +118,16 @@ DseCompiler.backend = function() {
 //	var processExecutor = new ProcessExecutor();
 //	processExecutor.setTimeout(LaradSetup.defaultTimelimit)
 //		.execute(LlvmUtils.getLlc() + " " + backendParams.backendFlags + " function.optim.ll -o function.optim.s");
+
+
+	var assembler = LlvmUtils.getAs();
+        if(Io.isFile(LaradSetup.specialAssembler)) {
+                assembler = LaradSetup.specialAssembler;
+        }
+
+        // for size metric
+        DseUtils.executeTool(assembler + " function.optim.s -o function.optim.o", DseCompiler.LOG_FILENAME);
+
 }
 
 DseCompiler.link = function() {

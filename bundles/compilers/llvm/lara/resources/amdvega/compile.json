@@ -1,0 +1,4 @@
+{
+	"compileFlags" : "-I /opt/rocm/opencl/include/opencl1.2 -L /opt/rocm/opencl/lib/x86_64"	
+}
+

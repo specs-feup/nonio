@@ -485,6 +485,8 @@ var DseRun = {};
 				
 				//println("Stored results:");
 				//printlnObject(storedResults);
+				//var resultsFilename = Io.removeExtension(LaradSetup.sourceFile) + "_results.json";
+				//Io.writeJson(resultsFilename, storedResults);
 				Io.writeJson("dse_results.json", storedResults);
 		}
 			
@@ -538,8 +540,8 @@ var DseRun = {};
 	}
 
 	DseRun.cleanAll = function() {
-	//	DseLanguage.clean();
-	//	DseCompiler.clean();
+	//	DseLanguage.clean();	// should this be uncomented?
+		DseCompiler.clean();
 	}
 
 	DseRun.getNumSavedExecutions = function() {
@@ -599,6 +601,19 @@ var DseRun = {};
 		}
 		else {	// in case the objective is maximization
 			if(fitnessLeft >= fitnessRight) return true;	
+			else return false;
+
+		}
+	}
+
+	// NOTA: verificar se ha casos em que podem estar a ser passados NaN, e ver o que fazer nesses casos
+	DseRun.isLeftFitnessBetterThanRightFitness = function (fitnessLeft, fitnessRight) {
+		if(isMinimization == true) {	// in case the objective of DSE is minimization of the target metric (which is the default)
+			if(fitnessLeft < fitnessRight) return true;
+			else return false;
+		}
+		else {	// in case the objective is maximization
+			if(fitnessLeft > fitnessRight) return true;	
 			else return false;
 
 		}

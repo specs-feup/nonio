@@ -1,0 +1,154 @@
+import DseCompilerBase;
+import DseCompilerResources;
+import DseLanguage;
+import LlvmUtils;
+import dse.DseUtils;
+import lara.util.ProcessExecutor;
+import lara.Io;
+import DsePlatform;
+
+
+/*** INITIALIZATION ***/
+
+DseCompiler.LOG_FILENAME = "DseCompiler";
+
+DseCompiler._init = function() {
+//	DseCompiler._addGeneratedFileCheck("main_wtiming.s",  "ASM for main function not generated");
+	DseCompiler._addGeneratedFileCheck("function.ll",  "IR for function to optimize not generated");
+	DseCompiler._addGeneratedFileCheck("function.optim.ll",  "Optimized function IR not generated");
+//	DseCompiler._addGeneratedFileCheck("function.optim.s",  "ASM for optimized function IR not generated");
+	//DseCompiler._addGeneratedFileCheck(System.getExecutableName("application"),  "Binary not generated");
+
+	DseCompiler._addGeneratedFileCheck("function.ptx",  "Device code not generated");
+	DseCompiler._addGeneratedFileCheck(LlvmUtils.getApplicationExeName(),  "Host binary not generated");
+		
+	// Delete log file
+	Io.deleteFile(DseUtils.getLogFile(DseCompiler.LOG_FILENAME));
+}
+
+DseCompiler._temp = DseCompiler._init();
+
+DseCompiler._getJson =function(path) {
+	return DseCompilerResources.getJson(DsePlatform.getCompilerConfig() + "/" + path);
+}
+
+/*** State to preserve between calls ***/
+ 
+/**
+ * Files that have been created by the compilation process.
+ */
+DseCompiler._compilationFiles = [];
+
+
+/*** PUBLIC FUNCTIONS OVERRIDE ***/
+
+DseCompiler.clean = function() {
+	
+	// Delete DseCompiler files
+	var files = Io.getPaths("./", LlvmUtils.getApplicationExeName(), LlvmUtils.getVerifyExeName(), "function.optim.ll", "function.optim.s", "function.ll", "main_wtiming.ll", "main_wtiming.s", "include.h", "*.dot");
+	for(var file of files) {
+		Io.deleteFile(file);
+	}
+
+}
+
+DseCompiler.compileLauncher = function() {
+        var applicationExeName = LlvmUtils.getApplicationExeName();
+	Io.deleteFiles(applicationExeName);
+	
+	var compileParams = DseCompiler._getJson("compile.json");
+
+	var filesToCompile = DseLanguage.getLauncherFilesToCompile().join(" ");
+	println("--------- DseCompiler.compileLauncher:" + DseLanguage.getLauncherFilesToCompile());
+	DseUtils.executeTool(LlvmUtils.getClang() + " " + compileParams.compileFlags + " " + filesToCompile + " -lOpenCL -lm -O3 -march=native -o " + LlvmUtils.getApplicationExeName(), DseCompiler.LOG_FILENAME);
+	
+
+	// If verification is performed in a separated main
+	if(LaradSetup.isVerificationSeparated === true) {
+	        var verifyExeName = LlvmUtils.getVerifyExeName();
+		Io.deleteFile(verifyExeName);
+
+		var verificationFilesToCompile = DseLanguage.getVerificationFilesToCompile().join(" ");
+		println("verification_files: " + verificationFilesToCompile);
+	        DseUtils.executeTool(LlvmUtils.getClang() + " " + compileParams.compileFlags + " " + verificationFilesToCompile + " -lOpenCL -lm -O3 -march=native -o " + verifyExeName, DseCompiler.LOG_FILENAME);
+
+			
+	}
+}
+
+DseCompiler.frontend = function() {
+	Io.deleteFile("function.ll");
+		
+	var frontendParams = DseCompiler._getJson("frontend.json");
+		
+	var filesToCompile = DseLanguage.getKernelFilesToCompile().join(" ");
+	DseUtils.executeTool(LlvmUtils.getClang() + " -Dcl_clang_storage_class_specifiers -isystem /opt/libclc/include -include clc/clc.h " + frontendParams.frontendFlags + " -S -emit-llvm -xcl -o function.ll " + filesToCompile, DseCompiler.LOG_FILENAME);
+}
+
+DseCompiler.opt = function(optFlags) {
+
+	Io.deleteFiles("function.optim.ll", "*.dot");
+
+	var optParams = DseCompiler._getJson("opt.json");
+	
+	DseUtils.executeTool(LlvmUtils.getOpt() + " " + optFlags + " " + optParams.optFlags + " function.ll -S -o function.optim.ll", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+	
+}
+
+DseCompiler.backend = function() {
+
+	Io.deleteFiles("function.linked.bc", "function.ptx");
+
+	var backendParams = DseCompiler._getJson("backend.json");
+
+        DseUtils.executeTool(LlvmUtils.getLlvmLink() + " function.optim.ll " + backendParams.linkFlags + " -o function.linked.bc", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+
+	DseUtils.executeTool(LlvmUtils.getClang() + " " + backendParams.clangFlags + " -o function.ptx function.linked.bc", DseCompiler.LOG_FILENAME, LaradSetup.defaultTimelimit);
+
+}
+
+DseCompiler.link = function() {
+
+	// DOES NOTHING
+
+}
+
+DseCompiler.getTestExecutable = function() {
+	return Io.getPath(LlvmUtils.getApplicationExeName());
+}
+
+DseCompiler.getVerificationExecutable = function() {
+	return Io.getPath(LlvmUtils.getVerifyExeName());
+}
+
+/*
+DseCompiler.execute = function() {
+	
+	//Io.deleteFile("info.dat");
+	
+	var application = new ProcessExecutor();
+	application.setTimeout(LaradSetup.defaultTimelimit)
+		.setPrintToConsole(false);
+	
+	application.execute(System.getExecutableName("application"));
+		
+	// TODO: If file is not created, DSE system gives an "error", find out why
+	Io.writeFile("info.dat", application.getReturnValue());
+
+	if(LaradSetup.isVerificationSeparated === true) {
+		var verification = new ProcessExecutor();
+		verification.setTimeout(LaradSetup.defaultTimelimit)
+			.setPrintToConsole(false);
+	
+		// Execute verification in another ProcessExecutor
+		verification.execute(System.getExecutableName("application_verify"));
+
+		// Save result of verification ProcessExecutor		
+		application.setCustomReturnValue(verification.getReturnValue());
+	}
+	
+	return application;
+}
+*/
+/*** PRIVATE FUNCTIONS OVERRIDE ***/
+

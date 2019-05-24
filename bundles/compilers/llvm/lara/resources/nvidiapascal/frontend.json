@@ -1,0 +1,3 @@
+{
+	"frontendFlags" : "-target nvptx64-nvidia-nvcl -march=sm_61"
+}

@@ -1,0 +1,3 @@
+{
+	"frontendFlags" : "-target amdgcn--amdhsa -mcpu=gfx900"
+}
