@@ -6,7 +6,7 @@ import dse.DseUtils;
 import lara.util.ProcessExecutor;
 import lara.Io;
 import DsePlatform;
-
+import LaradSetup;
 
 /*** INITIALIZATION ***/
 
@@ -58,8 +58,12 @@ DseCompiler.compileLauncher = function() {
 	//var compileParams = DseCompiler._getJson("compile.json");
 	var compileParams = DseCompiler._getJson("compile.json");
 
+
+	var extraFlags = LaradSetup.getCompilerFlags();	
+
 	var filesToCompile = DseLanguage.getLauncherFilesToCompile().join(" ");
-	DseUtils.executeTool(LlvmUtils.getClang() + " " + filesToCompile + " " + compileParams.clangFlags + " -emit-llvm -S -o main_wtiming.ll", DseCompiler.LOG_FILENAME);
+
+	DseUtils.executeTool(LlvmUtils.getClang() + " " + filesToCompile + " " + compileParams.clangFlags + " -emit-llvm -S -o main_wtiming.ll " + extraFlags, DseCompiler.LOG_FILENAME);
 	DseUtils.executeTool(LlvmUtils.getLlc() + " " + compileParams.llcFlags + " main_wtiming.ll -o main_wtiming.s", DseCompiler.LOG_FILENAME);
 	
 
@@ -88,10 +92,16 @@ DseCompiler.compileLauncher = function() {
 DseCompiler.frontend = function() {
 	Io.deleteFile("function.ll");
 		
+	var extraClangFlags = "";
+	if(LaradSetup.compilerFlags.length > 0) {
+		extraClangFlags = LaradSetup.compilerFlags.join(" ");
+	}		
+		
 	var frontendParams = DseCompiler._getJson("frontend.json");
 		
 	var filesToCompile = DseLanguage.getKernelFilesToCompile().join(" ");
-	DseUtils.executeTool(LlvmUtils.getClang() + " " + frontendParams.frontendFlags + " " + filesToCompile + " -emit-llvm -S -o function.ll", DseCompiler.LOG_FILENAME);
+
+	DseUtils.executeTool(LlvmUtils.getClang() + " " + frontendParams.frontendFlags + " " + extraClangFlags + " " + filesToCompile + " -emit-llvm -S -o function.ll", DseCompiler.LOG_FILENAME) ;
 }
 
 DseCompiler.opt = function(optFlags) {

@@ -510,6 +510,8 @@ var DseRun = {};
 		// TODO: Add includes, instead of set
 		weaverDataStore.put("include", WeaverOptions.getData().get("include"));
 		weaverDataStore.put("verbose", WeaverOptions.getData().get("verbose"));
+	
+
 		
 		// Write DataStore
 		weaverDataStore.save("instrument.datastore");

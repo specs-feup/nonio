@@ -55,10 +55,12 @@ DseCompiler.compileLauncher = function() {
 	//var compileParams = DseCompiler._getJson("compile.json");
 	var compileParams = DseCompiler._getJson("compile.json");
 
+	var extraFlags = LaradSetup.getCompilerFlags();	
+
 	var filesToCompile = DseLanguage.getLauncherFilesToCompile().join(" ");
 	
 	debug("Executing DseCompiler.compileLauncher() - Compilation");
-	DseUtils.executeTool(GccUtils.getGcc() + " " + filesToCompile + " " + compileParams.gccFlags + " -S -o main_wtiming.s", DseCompiler.LOG_FILENAME);
+	DseUtils.executeTool(GccUtils.getGcc() + " " + filesToCompile + " " + compileParams.gccFlags + " -S -o main_wtiming.s " + extraFlags, DseCompiler.LOG_FILENAME);
 
 	// If verification is performed in a separated main
 	var verifyExeName = GccUtils.getVerifyExeName();
@@ -98,7 +100,7 @@ DseCompiler.frontend = function() {
 
 DseCompiler.opt = function(optFlags) {
 
-        System.execute("pkill -f cc1"); // avoid acumulation of "cc1" processes
+    System.execute("pkill -f cc1"); // avoid acumulation of "cc1" processes
 
 	Io.deleteFiles("function.optim.s", "function.optim.o", "*.dot");
 

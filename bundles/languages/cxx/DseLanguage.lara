@@ -174,6 +174,12 @@ DseLanguage._prepareCodeC = function() {
 	data.put("Disable Clava Info", true);
 	data.put("bundle_tags", Clava.getData().get("bundle_tags"));	
 
+	// Add extra compilation flags
+	var extraFlags = LaradSetup.getCompilerFlags();
+	if(!Strings.isEmpty(extraFlags)) {
+		data.put("Compiler Flags", extraFlags);
+	}
+
 	return data;
 }
 

@@ -3,6 +3,7 @@ import DseLanguageResources;
 import LaradSetup;
 import dse.metrics.DseMetrics;
 import lara.Io;
+import lara.Strings;
 import lara.util.DataStore;
 import weaver.WeaverOptions;
 import clava.util.ClavaDataStore;
@@ -178,6 +179,12 @@ DseLanguage._prepareCodeC = function() {
     data.put("bundle_tags", WeaverOptions.getData().get("bundle_tags"));	
 	
 	data.put("Disable Clava Info", true);
+	
+	// Add extra compilation flags
+	var extraFlags = LaradSetup.getCompilerFlags();
+	if(!Strings.isEmpty(extraFlags)) {
+		data.put("Compiler Flags", extraFlags);
+	}
 
 	return data;
 }

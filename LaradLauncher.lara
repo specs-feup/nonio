@@ -33,8 +33,8 @@ aspectdef LaradLauncher
 		isVerificationSeparated = false,
 		log = undefined,
 		storeResults = false,
+		compilerFlags = [],
 		dummy = ""
-//		compilerFlags = undefined
 	end
 	
 	debug(true);
@@ -139,6 +139,8 @@ aspectdef LaradLauncher
 	aspectArgs += ", storeResults: '" + storeResults + "'";
 	
 	aspectArgs += ", algoExtra: '" + algoExtra + "'";
+	
+	aspectArgs += ", compilerFlags: ['" + compilerFlags.join("', '") + "']";
 
 	aspectArgs += "}";
 

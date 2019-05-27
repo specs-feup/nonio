@@ -34,7 +34,8 @@ aspectdef Larad
 		append="",
 		metrics = ["performance"],
 		language = "c",
-		storeResults = false
+		storeResults = false,
+		compilerFlags = []
 	end
 
 	/** CHECKS **/
@@ -88,6 +89,7 @@ aspectdef Larad
 	LaradSetup.alreadyInstrumented = alreadyInstrumented;
 	LaradSetup.storeResults = storeResults;
 	LaradSetup.algoExtra = algoExtra;
+	LaradSetup.compilerFlags = compilerFlags;
 	
 	/** PREPARE FOLDER **/
 

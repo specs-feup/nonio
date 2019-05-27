@@ -84,3 +84,12 @@ LaradSetup.getExeName = function(baseName) {
 	return exeName;
 }
 
+LaradSetup.getCompilerFlags = function() {
+
+	if(LaradSetup.compilerFlags.length > 0) {
+		return LaradSetup.compilerFlags.join(" ");
+	}
+
+	return "";
+}
+

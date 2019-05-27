@@ -183,6 +183,12 @@ println("LAUNCHER FILES:" + DseLanguage._launcherFilesToCompile);
 	//data.put("bundle_tags", Clava.getData().get("bundle_tags"));
 	data.put("bundle_tags", WeaverOptions.getData().get("bundle_tags"));	
 
+	// Add extra compilation flags
+	var extraFlags = LaradSetup.getCompilerFlags();
+	if(!Strings.isEmpty(extraFlags)) {
+		data.put("Compiler Flags", extraFlags);
+	}
+
 	data.put("Disable Clava Info", true);
 
 	return data;
